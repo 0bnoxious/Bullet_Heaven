@@ -1,11 +1,12 @@
 use bevy::sprite::SpriteBundle;
 use std::time::Duration;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::prelude::*;
 use rand::Rng;
 
 pub const PERSONCOUNT: i32 = 50;
 pub const PERSONSPEED: f32 = 50.;
+pub const PERSONSIZE: f32 = 10.;
 
 fn main() {
     App::new()
@@ -14,6 +15,8 @@ fn main() {
         .add_startup_system(populate)
         .add_system(move_population)
         .add_system(update_population_direction)
+        .add_system(infect)
+        .add_system(change_color)
         .run()
 }
 
@@ -33,35 +36,64 @@ struct TimerRes {
 #[derive(Component)]
 pub struct Person {
     pub is_infected: bool,
+    pub color: Color,
     pub direction: Vec3,
 }
 
 pub fn populate(mut commands: Commands) {
     let mut n = 0;
 
-    while n < PERSONCOUNT {
-        // Generate random number in the range [0, 99]
-        let numx = rand::thread_rng().gen_range(0..200);
-        let numy = rand::thread_rng().gen_range(0..200);
-
-        // Circle
-        commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::GREEN,
-                    custom_size: (Some(Vec2 { x: 10., y: 10. })),
-                    ..default()
-                },
-                transform: Transform::from_translation(Vec3::new(numx as f32, numy as f32, 0.)),
+    //patient 0
+    commands.spawn((
+        Person {
+            is_infected: true,
+            color: Color::RED,
+            direction: Vec3 {
+                x: 0.,
+                y: 0.,
+                z: 0.,
+            },
+        },
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::RED,
+                custom_size: (Some(Vec2 {
+                    x: PERSONSIZE,
+                    y: PERSONSIZE,
+                })),
                 ..default()
             },
+            transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+            ..default()
+        },
+    ));
+
+    while n < PERSONCOUNT {
+        // Generate random number in the range [0, 99]
+        let numx = rand::thread_rng().gen_range(-100..=100);
+        let numy = rand::thread_rng().gen_range(-100..=00);
+
+        commands.spawn((
             Person {
                 is_infected: false,
+                color: Color::GREEN,
                 direction: Vec3 {
                     x: 0.,
                     y: 0.,
                     z: 0.,
                 },
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::GREEN,
+                    custom_size: (Some(Vec2 {
+                        x: PERSONSIZE,
+                        y: PERSONSIZE,
+                    })),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(numx as f32, numy as f32, 0.)),
+                ..default()
             },
         ));
 
@@ -76,18 +108,17 @@ fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>)
 }
 
 fn update_population_direction(
-    mut query: Query<(&mut Person)>,
+    mut query: Query<&mut Person>,
     time: Res<Time>,
     mut timer_res: ResMut<TimerRes>, //metton jveu faire pause?
 ) {
     timer_res.timer.tick(time.delta());
 
-    for (mut person) in &mut query {
+    for mut person in &mut query {
         if timer_res.timer.just_finished() {
             let mut direction = Vec3::new(0., 0., 0.);
             let numx = rand::thread_rng().gen_range(-1..=1);
             let numy = rand::thread_rng().gen_range(-1..=1);
-            println!("numx : {}   numy : {}", numx.to_string(), numy.to_string());
             direction += Vec3::new(numx as f32, numy as f32, 0.);
 
             person.direction = direction * PERSONSPEED * time.delta_seconds();
@@ -95,9 +126,25 @@ fn update_population_direction(
     }
 }
 
-pub fn infect(query: Query<&Person>) {
-    for person in &query {
-        if (person.is_infected == true) {}
-        println!("Is infected? : {}", person.is_infected);
+fn infect(mut query: Query<(&mut Transform, &mut Person)>) {
+    let combinations = &mut query.iter_combinations_mut();
+    while let Some([(tranform1, mut person1), (transform2, mut person2)]) =
+        combinations.fetch_next()
+    {
+        let distance = tranform1.translation.distance(transform2.translation);
+        if (person2.is_infected || person1.is_infected) && distance < PERSONSIZE {
+            person1.is_infected = true;
+            person2.is_infected = true;
+        }
+    }
+}
+
+fn change_color(mut query: Query<(&Person, &mut Sprite)>) {
+    for (person, mut sprite) in &mut query {
+        if person.is_infected {
+            sprite.color = Color::RED;
+        } else {
+            sprite.color = Color::GREEN;
+        }
     }
 }

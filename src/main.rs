@@ -2,7 +2,7 @@ use bevy::sprite::SpriteBundle;
 use std::time::Duration;
 
 use bevy::prelude::*;
-use rand::Rng;
+use rand::{rngs::mock::StepRng, seq::IteratorRandom, thread_rng, Rng};
 
 pub const PERSONCOUNT: i32 = 50;
 pub const PERSONSPEED: f32 = 50.;
@@ -71,7 +71,7 @@ pub fn populate(mut commands: Commands) {
     while n < PERSONCOUNT {
         // Generate random number in the range [0, 99]
         let numx = rand::thread_rng().gen_range(-100..=100);
-        let numy = rand::thread_rng().gen_range(-100..=00);
+        let numy = rand::thread_rng().gen_range(-100..=100);
 
         commands.spawn((
             Person {
@@ -110,16 +110,22 @@ fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>)
 fn update_population_direction(
     mut query: Query<&mut Person>,
     time: Res<Time>,
-    mut timer_res: ResMut<TimerRes>, //metton jveu faire pause?
+    mut timer_res: ResMut<TimerRes>,
 ) {
     timer_res.timer.tick(time.delta());
 
     for mut person in &mut query {
         if timer_res.timer.just_finished() {
             let mut direction = Vec3::new(0., 0., 0.);
-            let numx = rand::thread_rng().gen_range(-1..=1);
-            let numy = rand::thread_rng().gen_range(-1..=1);
-            direction += Vec3::new(numx as f32, numy as f32, 0.);
+
+            let mut rng = thread_rng();
+            let v = vec![-1, 1];
+            let numx = v.iter().choose(&mut rng).unwrap();
+            let numy = v.iter().choose(&mut rng).unwrap();
+
+            //let numx = rand::thread_rng().gen_range(-1..=1);
+            //let numy = rand::thread_rng().gen_range(-1..=1);
+            direction += Vec3::new(*numx as f32, *numy as f32, 0.);
 
             person.direction = direction * PERSONSPEED * time.delta_seconds();
         }

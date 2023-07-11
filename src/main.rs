@@ -1,13 +1,13 @@
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
+use rand::Rng;
 use std::time::Duration;
 
-use bevy::prelude::*;
-use rand::{seq::IteratorRandom, thread_rng, Rng};
-
-pub const PERSONCOUNT: i32 = 100;
+pub const PERSONCOUNT: i32 = 5000;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
-pub const BOXSIZE: f32 = 200.;
+pub const BOXSIZE: f32 = 500.;
 
 fn main() {
     App::new()
@@ -18,6 +18,8 @@ fn main() {
         .add_system(update_population_direction)
         .add_system(infect)
         .add_system(define_space)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .run()
 }
 
@@ -42,7 +44,6 @@ struct InfectTimer {
 #[derive(Component)]
 pub struct Person {
     pub is_infected: bool,
-    pub color: Color,
     pub direction: Vec3,
 }
 
@@ -53,7 +54,6 @@ pub fn populate(mut commands: Commands) {
     commands.spawn((
         Person {
             is_infected: true,
-            color: Color::RED,
             direction: generate_velocity(),
         },
         SpriteBundle {
@@ -80,7 +80,6 @@ pub fn populate(mut commands: Commands) {
         commands.spawn((
             Person {
                 is_infected: false,
-                color: Color::GREEN,
                 direction: generate_velocity(),
             },
             SpriteBundle {
@@ -177,3 +176,4 @@ fn generate_velocity() -> Vec3 {
 
     Vec3::new(velx, vely, 0.)
 }
+//fn printoute(mut query: Query) {}

@@ -7,7 +7,7 @@ use rand::{seq::IteratorRandom, thread_rng, Rng};
 pub const PERSONCOUNT: i32 = 100;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
-pub const BOXSIZE: f32 = 400.;
+pub const BOXSIZE: f32 = 200.;
 
 fn main() {
     App::new()
@@ -31,6 +31,11 @@ pub fn setup(mut commands: Commands) {
 
 #[derive(Resource)]
 struct TimerRes {
+    timer: Timer,
+}
+
+#[derive(Component)]
+struct InfectTimer {
     timer: Timer,
 }
 
@@ -63,6 +68,9 @@ pub fn populate(mut commands: Commands) {
             transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
             ..default()
         },
+        InfectTimer {
+            timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
+        },
     ));
 
     while n < PERSONCOUNT {
@@ -86,6 +94,9 @@ pub fn populate(mut commands: Commands) {
                 },
                 transform: Transform::from_translation(Vec3::new(posx as f32, posy as f32, 0.)),
                 ..default()
+            },
+            InfectTimer {
+                timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
             },
         ));
         n += 1;
@@ -112,18 +123,28 @@ fn update_population_direction(
     }
 }
 
-fn infect(mut query: Query<(&mut Transform, &mut Person, &mut Sprite)>) {
+fn infect(
+    mut query: Query<(&mut Transform, &mut Person, &mut Sprite, &mut InfectTimer)>,
+    time: Res<Time>,
+) {
     let combinations = &mut query.iter_combinations_mut();
     while let Some(
-        [(tranform1, mut person1, mut sprite1), (transform2, mut person2, mut sprite2)],
+        [(tranform1, mut person1, mut sprite1, mut infect_timer1), (transform2, mut person2, mut sprite2, mut infect_timer2)],
     ) = combinations.fetch_next()
     {
         let distance = tranform1.translation.distance(transform2.translation);
+
         if (person2.is_infected || person1.is_infected) && distance < PERSONSIZE {
-            person1.is_infected = true;
-            person2.is_infected = true;
-            sprite1.color = Color::RED;
-            sprite2.color = Color::RED;
+            infect_timer2.timer.tick(time.delta());
+            if infect_timer2.timer.finished() {
+                let infect = rand::thread_rng().gen_range(0..=4);
+                if infect == 4 {
+                    person1.is_infected = true;
+                    person2.is_infected = true;
+                    sprite1.color = Color::RED;
+                    sprite2.color = Color::RED;
+                }
+            }
         }
     }
 }
@@ -151,11 +172,8 @@ fn define_space(mut query: Query<&mut Transform, With<Person>>) {
 }
 
 fn generate_velocity() -> Vec3 {
-    let mut rng = thread_rng();
-    let v = vec![-1, 1];
-    Vec3::new(
-        *v.iter().choose(&mut rng).unwrap() as f32,
-        *v.iter().choose(&mut rng).unwrap() as f32,
-        0.,
-    )
+    let velx = rand::thread_rng().gen_range(-1.0..1.0);
+    let vely = rand::thread_rng().gen_range(-1.0..1.0);
+
+    Vec3::new(velx, vely, 0.)
 }

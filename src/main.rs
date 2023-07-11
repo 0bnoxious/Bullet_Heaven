@@ -2,11 +2,12 @@ use bevy::sprite::SpriteBundle;
 use std::time::Duration;
 
 use bevy::prelude::*;
-use rand::{rngs::mock::StepRng, seq::IteratorRandom, thread_rng, Rng};
+use rand::{seq::IteratorRandom, thread_rng, Rng};
 
-pub const PERSONCOUNT: i32 = 50;
+pub const PERSONCOUNT: i32 = 100;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
+pub const BOXSIZE: f32 = 400.;
 
 fn main() {
     App::new()
@@ -16,7 +17,7 @@ fn main() {
         .add_system(move_population)
         .add_system(update_population_direction)
         .add_system(infect)
-        .add_system(change_color)
+        .add_system(define_space)
         .run()
 }
 
@@ -48,11 +49,7 @@ pub fn populate(mut commands: Commands) {
         Person {
             is_infected: true,
             color: Color::RED,
-            direction: Vec3 {
-                x: 0.,
-                y: 0.,
-                z: 0.,
-            },
+            direction: generate_velocity(),
         },
         SpriteBundle {
             sprite: Sprite {
@@ -69,19 +66,14 @@ pub fn populate(mut commands: Commands) {
     ));
 
     while n < PERSONCOUNT {
-        // Generate random number in the range [0, 99]
-        let numx = rand::thread_rng().gen_range(-100..=100);
-        let numy = rand::thread_rng().gen_range(-100..=100);
+        let posx = rand::thread_rng().gen_range(-100..=100);
+        let posy = rand::thread_rng().gen_range(-100..=100);
 
         commands.spawn((
             Person {
                 is_infected: false,
                 color: Color::GREEN,
-                direction: Vec3 {
-                    x: 0.,
-                    y: 0.,
-                    z: 0.,
-                },
+                direction: generate_velocity(),
             },
             SpriteBundle {
                 sprite: Sprite {
@@ -92,11 +84,10 @@ pub fn populate(mut commands: Commands) {
                     })),
                     ..default()
                 },
-                transform: Transform::from_translation(Vec3::new(numx as f32, numy as f32, 0.)),
+                transform: Transform::from_translation(Vec3::new(posx as f32, posy as f32, 0.)),
                 ..default()
             },
         ));
-
         n += 1;
     }
 }
@@ -116,41 +107,55 @@ fn update_population_direction(
 
     for mut person in &mut query {
         if timer_res.timer.just_finished() {
-            let mut direction = Vec3::new(0., 0., 0.);
-
-            let mut rng = thread_rng();
-            let v = vec![-1, 1];
-            let numx = v.iter().choose(&mut rng).unwrap();
-            let numy = v.iter().choose(&mut rng).unwrap();
-
-            //let numx = rand::thread_rng().gen_range(-1..=1);
-            //let numy = rand::thread_rng().gen_range(-1..=1);
-            direction += Vec3::new(*numx as f32, *numy as f32, 0.);
-
-            person.direction = direction * PERSONSPEED * time.delta_seconds();
+            person.direction = generate_velocity() * PERSONSPEED * time.delta_seconds();
         }
     }
 }
 
-fn infect(mut query: Query<(&mut Transform, &mut Person)>) {
+fn infect(mut query: Query<(&mut Transform, &mut Person, &mut Sprite)>) {
     let combinations = &mut query.iter_combinations_mut();
-    while let Some([(tranform1, mut person1), (transform2, mut person2)]) =
-        combinations.fetch_next()
+    while let Some(
+        [(tranform1, mut person1, mut sprite1), (transform2, mut person2, mut sprite2)],
+    ) = combinations.fetch_next()
     {
         let distance = tranform1.translation.distance(transform2.translation);
         if (person2.is_infected || person1.is_infected) && distance < PERSONSIZE {
             person1.is_infected = true;
             person2.is_infected = true;
+            sprite1.color = Color::RED;
+            sprite2.color = Color::RED;
         }
     }
 }
 
-fn change_color(mut query: Query<(&Person, &mut Sprite)>) {
-    for (person, mut sprite) in &mut query {
-        if person.is_infected {
-            sprite.color = Color::RED;
-        } else {
-            sprite.color = Color::GREEN;
+fn define_space(mut query: Query<&mut Transform, With<Person>>) {
+    let minxy = (-BOXSIZE / 2.) - PERSONSIZE / 2.;
+    let maxxy = (BOXSIZE / 2.) - PERSONSIZE / 2.;
+
+    for mut transform in query.iter_mut() {
+        let mut translation = transform.translation;
+
+        if translation.x < minxy {
+            translation.x = minxy;
+        } else if translation.x > maxxy {
+            translation.x = maxxy
         }
+        if translation.y < minxy {
+            translation.y = minxy;
+        } else if translation.y > maxxy {
+            translation.y = maxxy
+        }
+
+        transform.translation = translation
     }
+}
+
+fn generate_velocity() -> Vec3 {
+    let mut rng = thread_rng();
+    let v = vec![-1, 1];
+    Vec3::new(
+        *v.iter().choose(&mut rng).unwrap() as f32,
+        *v.iter().choose(&mut rng).unwrap() as f32,
+        0.,
+    )
 }

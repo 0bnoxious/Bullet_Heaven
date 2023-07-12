@@ -1,4 +1,5 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
 use rand::Rng;
@@ -134,8 +135,10 @@ fn infect(
         let distance = tranform1.translation.distance(transform2.translation);
 
         if (person2.is_infected || person1.is_infected) && distance < PERSONSIZE {
+            // attempt to infect once every 1/5 second
             infect_timer2.timer.tick(time.delta());
             if infect_timer2.timer.finished() {
+                // 1/5 chance to infect
                 let infect = rand::thread_rng().gen_range(0..=4);
                 if infect == 4 {
                     person1.is_infected = true;

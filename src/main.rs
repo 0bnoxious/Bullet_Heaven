@@ -87,8 +87,6 @@ fn spawn_player(mut commands: Commands) {
 }
 
 fn populate(mut commands: Commands) {
-    let mut n = 0;
-
     let mut rng = rand::thread_rng();
 
     //patient 0
@@ -132,7 +130,7 @@ fn populate(mut commands: Commands) {
                     })),
                     ..default()
                 },
-                transform: Transform::from_translation(Vec3::new(posx as f32, posy as f32, 0.)),
+                transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
                 ..default()
             },
             InfectTimer {

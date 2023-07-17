@@ -1,4 +1,5 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::ecs::system::SystemParam;
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
@@ -6,24 +7,31 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 use std::time::Duration;
 
+pub const BOXSIZE: f32 = 720.;
+
 pub const PERSONCOUNT: i32 = 5000;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
-pub const BOXSIZE: f32 = 720.;
+
 pub const PLAYERSPEED: f32 = 100.;
+pub const ATTACKSPEED: u64 = 10;
+pub const PROJECTILESPEED: f32 = 250.;
+pub const PROJECTILELIFESPAN: u64 = 3;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()))
+        .add_plugins((DefaultPlugins/*, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()*/))
         .add_systems(Startup, (setup, spawn_player, populate))
         .add_systems(
             Update,
             (
                 move_population,
+                move_projectile,
                 update_population_direction,
                 infect,
                 define_space,
                 gamepad_input,
+                attack,
             ),
         )
         .run()
@@ -48,7 +56,22 @@ struct InfectTimer {
 }
 
 #[derive(Component)]
+struct AttackTimer {
+    timer: Timer,
+}
+
+#[derive(Component)]
+struct ProjectileTimer {
+    timer: Timer,
+}
+
+#[derive(Component)]
 pub struct Person {
+    pub direction: Vec3,
+}
+
+#[derive(Component)]
+pub struct Projectile {
     pub direction: Vec3,
 }
 
@@ -58,10 +81,13 @@ pub struct Player {
     pub direction: Vec3,
 }
 
+#[derive(Component)]
+struct Infected;
+
 fn spawn_player(mut commands: Commands) {
+    let mut rng = rand::thread_rng();
     commands.spawn((
-        Player {
-            is_infected: false,
+        Projectile {
             direction: Vec3 {
                 x: 0.,
                 y: 0.,
@@ -83,6 +109,39 @@ fn spawn_player(mut commands: Commands) {
         InfectTimer {
             timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
         },
+        AttackTimer {
+            timer: Timer::new(Duration::from_millis(200 * ATTACKSPEED), TimerMode::Repeating),
+        },
+        Player{
+            is_infected: false,
+            direction: Vec3::ZERO,
+        }
+    ));
+}
+
+fn spawn_projectile(commands: &mut Commands, transform: &Transform) {
+    let mut rng = rand::thread_rng();
+    let player_position = transform.translation;
+
+    commands.spawn((
+        Projectile {
+            direction: generate_velocity(&mut rng),
+        },
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::YELLOW,
+                custom_size: (Some(Vec2 {
+                    x: PERSONSIZE,
+                    y: PERSONSIZE,
+                })),
+                ..default()
+            },
+            transform: Transform::from_translation(player_position),
+            ..default()
+        },
+        ProjectileTimer {
+            timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
+        }
     ));
 }
 
@@ -141,9 +200,62 @@ fn populate(mut commands: Commands) {
     commands.spawn_batch(v);
 }
 
+#[derive(SystemParam)]
+struct PlayerProjectileSpawner<'w, 's> {
+    commands: Commands<'w, 's>,
+    players: Query<'w, 's, &'static Transform, With<Player>>,
+}
+
+impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
+    fn spawn_projectile(&mut self) {
+        let mut rng = rand::thread_rng();
+        let player_position = self.players.single().translation;
+    
+        self.commands.spawn((
+            Projectile {
+                direction: generate_velocity(&mut rng),
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::YELLOW,
+                    custom_size: (Some(Vec2 {
+                        x: PERSONSIZE,
+                        y: PERSONSIZE,
+                    })),
+                    ..default()
+                },
+                transform: Transform::from_translation(player_position),
+                ..default()
+            },
+            ProjectileTimer {
+                timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
+            }
+        ));
+    }
+}
+
+fn attack(
+    time: Res<Time>, 
+    mut attack_timer_query: Query<&mut AttackTimer>,
+    mut player_counter: PlayerProjectileSpawner,
+) {
+    let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
+    attack_timer.timer.tick(time.delta());
+    if attack_timer.timer.finished() {
+        player_counter.spawn_projectile();
+        // spawn_projectile(&mut commands, player_transform_query.single());
+    }
+}
+
 fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
     for (mut transform, person) in &mut query.iter_mut() {
         transform.translation += person.direction * PERSONSPEED * time.delta_seconds();
+    }
+}
+
+fn move_projectile(mut query: Query<(&mut Transform, &Projectile)>, time: Res<Time>) {
+    for (mut transform, projectile) in &mut query.iter_mut() {
+        transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
     }
 }
 
@@ -162,13 +274,9 @@ fn update_population_direction(
     }
 }
 
-#[derive(Component)]
-struct Infected;
-
 #[allow(clippy::type_complexity)]
 fn infect(
     mut commands: Commands,
-    // mut query: Query<(&mut Transform, &mut Person, &mut Sprite, &mut InfectTimer)>,
     query_infected: Query<&Transform, With<Infected>>,
     mut query_healthy: Query<(Entity, &Transform, &mut Sprite, &mut InfectTimer), (With<Person>, Without<Infected>)>,
     time: Res<Time>,
@@ -192,29 +300,6 @@ fn infect(
             }
         }
     }
-
-    // let combinations = &mut query.iter_combinations_mut();
-    // while let Some(
-    //     [(tranform1, mut person1, mut sprite1, mut infect_timer1), (transform2, mut person2, mut sprite2, mut infect_timer2)],
-    // ) = combinations.fetch_next()
-    // {
-    //     let distance = tranform1.translation.distance(transform2.translation);
-
-    //     if (person2.is_infected || person1.is_infected) && distance < PERSONSIZE {
-    //         // attempt to infect once every 1/5 second
-    //         infect_timer2.timer.tick(time.delta());
-    //         if infect_timer2.timer.finished() {
-    //             // 1/5 chance to infect
-    //             let infect = rng.gen_range(0..=4);
-    //             if infect == 4 {
-    //                 person1.is_infected = true;
-    //                 person2.is_infected = true;
-    //                 sprite1.color = Color::RED;
-    //                 sprite2.color = Color::RED;
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 fn define_space(mut query: Query<&mut Transform, With<Person>>) {

@@ -9,13 +9,13 @@ use std::time::Duration;
 
 pub const BOXSIZE: f32 = 720.;
 
-pub const PERSONCOUNT: i32 = 5000;
+pub const PERSONCOUNT: i32 = 10;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
 
 pub const PLAYERSPEED: f32 = 100.;
-pub const ATTACKSPEED: u64 = 10;
-pub const PROJECTILESPEED: f32 = 250.;
+pub const ATTACKSPEED: u64 = 1;
+pub const PROJECTILESPEED: f32 = 500.;
 pub const PROJECTILELIFESPAN: u64 = 3;
 
 fn main() {
@@ -108,13 +108,13 @@ fn define_space(mut query: Query<&mut Transform, With<Person>>) {
 
 fn spawn_player(mut commands: Commands) {
     commands.spawn((
-        Projectile {
+        /*Projectile {
             direction: Vec3 {
                 x: 0.,
                 y: 0.,
                 z: 0.,
             },
-        },
+        },*/
         SpriteBundle {
             sprite: Sprite {
                 color: Color::BLUE,
@@ -241,10 +241,68 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
     }
 }
 
-fn move_projectile(mut query: Query<(&mut Transform, &Projectile)>, time: Res<Time>) {
-    for (mut transform, projectile) in &mut query.iter_mut() {
-        transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
+enum AimingStyle {
+    Random,
+    Closest,
+    HomingClosest,
+    Mouse,
+    HomingMouse,
+    Direction,
+}
+
+fn move_projectile(
+    mut projectile_query: Query<(&mut Transform, &Projectile)>,
+    infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
+    time: Res<Time>, 
+) {
+    let aim_type = AimingStyle::HomingClosest;
+
+    match aim_type {
+        AimingStyle::Random => {
+            for (mut transform, projectile) in &mut projectile_query.iter_mut() {
+                transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
+            }
+        },
+        AimingStyle::HomingClosest => {
+            let mut closest_distance = 1000.;
+            let mut closest_infected_translation = Vec3::ZERO;
+
+            for (mut projectile_transform, _) in &mut projectile_query.iter_mut() {
+
+                let projectile_translation = projectile_transform.translation;
+
+                for infected_transform in &mut infected_query.iter() {
+
+                    let infected_translation = infected_transform.translation;
+
+                    let distance = Vec3::distance(projectile_translation, infected_translation);
+
+                    if distance < closest_distance{
+
+                        closest_distance = distance;
+                        closest_infected_translation = infected_translation;  
+                    }
+                }
+
+                 // get the vector from the projectile to the closest infected and normalize it.
+                let to_closest = closest_infected_translation - projectile_translation;
+
+                // get the quaternion to rotate from the initial projectile facing direction to the direction
+                // facing the closest infected
+                let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
+
+                // rotate the projectile to face the closest infected
+                projectile_transform.rotation = rotate_to_infected;
+                projectile_transform.translation += to_closest.normalize() * PROJECTILESPEED * time.delta_seconds();
+
+            }
+        },
+        AimingStyle::Direction => println!("Direction!"),
+        AimingStyle::Mouse => println!("Mouse!"),
+        AimingStyle::Closest => println!("HomingClosest!"),
+        AimingStyle::HomingMouse => println!("HomingMouse!"),
     }
+
 }
 
 fn update_population_direction(
@@ -261,21 +319,6 @@ fn update_population_direction(
         }
     }
 }
-
-/*fn follow_player(
-    mut query: Query<&mut Player>,
-    time: Res<Time>,
-    mut timer_res: ResMut<TimerRes>,
-) {
-    timer_res.timer.tick(time.delta());
-
-    let mut rng = rand::thread_rng();
-    for mut person in &mut query {
-        if timer_res.timer.just_finished() {
-            person.direction = generate_velocity(&mut rng);
-        }
-    }
-}*/
 
 fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
     for (mut transform, person) in &mut query.iter_mut() {

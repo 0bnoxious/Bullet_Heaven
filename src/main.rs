@@ -31,7 +31,7 @@ fn main() {
                 infect,
                 define_space,
                 gamepad_input,
-                attack,
+                player_attack,
             ),
         )
         .run()
@@ -84,8 +84,29 @@ pub struct Player {
 #[derive(Component)]
 struct Infected;
 
+fn define_space(mut query: Query<&mut Transform, With<Person>>) {
+    let minxy = (-BOXSIZE / 2.) - PERSONSIZE / 2.;
+    let maxxy = (BOXSIZE / 2.) - PERSONSIZE / 2.;
+
+    for mut transform in query.iter_mut() {
+        let mut translation = transform.translation;
+
+        if translation.x < minxy {
+            translation.x = minxy;
+        } else if translation.x > maxxy {
+            translation.x = maxxy
+        }
+        if translation.y < minxy {
+            translation.y = minxy;
+        } else if translation.y > maxxy {
+            translation.y = maxxy
+        }
+
+        transform.translation = translation
+    }
+}
+
 fn spawn_player(mut commands: Commands) {
-    let mut rng = rand::thread_rng();
     commands.spawn((
         Projectile {
             direction: Vec3 {
@@ -115,32 +136,6 @@ fn spawn_player(mut commands: Commands) {
         Player{
             is_infected: false,
             direction: Vec3::ZERO,
-        }
-    ));
-}
-
-fn spawn_projectile(commands: &mut Commands, transform: &Transform) {
-    let mut rng = rand::thread_rng();
-    let player_position = transform.translation;
-
-    commands.spawn((
-        Projectile {
-            direction: generate_velocity(&mut rng),
-        },
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::YELLOW,
-                custom_size: (Some(Vec2 {
-                    x: PERSONSIZE,
-                    y: PERSONSIZE,
-                })),
-                ..default()
-            },
-            transform: Transform::from_translation(player_position),
-            ..default()
-        },
-        ProjectileTimer {
-            timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
         }
     ));
 }
@@ -200,6 +195,18 @@ fn populate(mut commands: Commands) {
     commands.spawn_batch(v);
 }
 
+fn player_attack(
+    time: Res<Time>, 
+    mut attack_timer_query: Query<&mut AttackTimer>,
+    mut player_counter: PlayerProjectileSpawner,
+) {
+    let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
+    attack_timer.timer.tick(time.delta());
+    if attack_timer.timer.finished() {
+        player_counter.spawn_projectile();
+    }
+}
+
 #[derive(SystemParam)]
 struct PlayerProjectileSpawner<'w, 's> {
     commands: Commands<'w, 's>,
@@ -234,25 +241,6 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
     }
 }
 
-fn attack(
-    time: Res<Time>, 
-    mut attack_timer_query: Query<&mut AttackTimer>,
-    mut player_counter: PlayerProjectileSpawner,
-) {
-    let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
-    attack_timer.timer.tick(time.delta());
-    if attack_timer.timer.finished() {
-        player_counter.spawn_projectile();
-        // spawn_projectile(&mut commands, player_transform_query.single());
-    }
-}
-
-fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
-    for (mut transform, person) in &mut query.iter_mut() {
-        transform.translation += person.direction * PERSONSPEED * time.delta_seconds();
-    }
-}
-
 fn move_projectile(mut query: Query<(&mut Transform, &Projectile)>, time: Res<Time>) {
     for (mut transform, projectile) in &mut query.iter_mut() {
         transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
@@ -271,6 +259,27 @@ fn update_population_direction(
         if timer_res.timer.just_finished() {
             person.direction = generate_velocity(&mut rng);
         }
+    }
+}
+
+/*fn follow_player(
+    mut query: Query<&mut Player>,
+    time: Res<Time>,
+    mut timer_res: ResMut<TimerRes>,
+) {
+    timer_res.timer.tick(time.delta());
+
+    let mut rng = rand::thread_rng();
+    for mut person in &mut query {
+        if timer_res.timer.just_finished() {
+            person.direction = generate_velocity(&mut rng);
+        }
+    }
+}*/
+
+fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
+    for (mut transform, person) in &mut query.iter_mut() {
+        transform.translation += person.direction * PERSONSPEED * time.delta_seconds();
     }
 }
 
@@ -302,28 +311,6 @@ fn infect(
     }
 }
 
-fn define_space(mut query: Query<&mut Transform, With<Person>>) {
-    let minxy = (-BOXSIZE / 2.) - PERSONSIZE / 2.;
-    let maxxy = (BOXSIZE / 2.) - PERSONSIZE / 2.;
-
-    for mut transform in query.iter_mut() {
-        let mut translation = transform.translation;
-
-        if translation.x < minxy {
-            translation.x = minxy;
-        } else if translation.x > maxxy {
-            translation.x = maxxy
-        }
-        if translation.y < minxy {
-            translation.y = minxy;
-        } else if translation.y > maxxy {
-            translation.y = maxxy
-        }
-
-        transform.translation = translation
-    }
-}
-
 fn generate_velocity(rng: &mut ThreadRng) -> Vec3 {
     let velx = rng.gen_range(-1.0..1.0);
     let vely = rng.gen_range(-1.0..1.0);
@@ -331,6 +318,7 @@ fn generate_velocity(rng: &mut ThreadRng) -> Vec3 {
     Vec3::new(velx, vely, 0.)
 }
 
+// TODO: leafwing-input-manager
 fn gamepad_input(
     buttons: Res<Input<GamepadButton>>,
     mut query: Query<&mut Transform, With<Player>>,
@@ -340,8 +328,6 @@ fn gamepad_input(
     let Some(gamepad) = gamepads.iter().next() else { 
         return; 
     }; 
-
-    // leafwing-input-manager
 
     // In a real game, the buttons would be configurable, but here we hardcode them
     let up_dpad = GamepadButton {

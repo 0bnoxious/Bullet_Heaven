@@ -3,6 +3,7 @@ use bevy::ecs::system::SystemParam;
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
+use bevy::transform::commands;
 use rand::Rng;
 use rand::rngs::ThreadRng;
 use std::time::Duration;
@@ -15,8 +16,8 @@ pub const PERSONSIZE: f32 = 10.;
 
 pub const PLAYERSPEED: f32 = 100.;
 pub const ATTACKSPEED: u64 = 1;
-pub const PROJECTILESPEED: f32 = 500.;
-pub const PROJECTILELIFESPAN: u64 = 3;
+pub const PROJECTILESPEED: f32 = 10.;
+pub const PROJECTILELIFESPAN: u64 = 1;
 
 fn main() {
     App::new()
@@ -32,6 +33,7 @@ fn main() {
                 define_space,
                 gamepad_input,
                 player_attack,
+                dispawn_projectile,
             ),
         )
         .run()
@@ -108,13 +110,6 @@ fn define_space(mut query: Query<&mut Transform, With<Person>>) {
 
 fn spawn_player(mut commands: Commands) {
     commands.spawn((
-        /*Projectile {
-            direction: Vec3 {
-                x: 0.,
-                y: 0.,
-                z: 0.,
-            },
-        },*/
         SpriteBundle {
             sprite: Sprite {
                 color: Color::BLUE,
@@ -131,7 +126,7 @@ fn spawn_player(mut commands: Commands) {
             timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
         },
         AttackTimer {
-            timer: Timer::new(Duration::from_millis(200 * ATTACKSPEED), TimerMode::Repeating),
+            timer: Timer::new(Duration::from_millis(ATTACKSPEED), TimerMode::Repeating),
         },
         Player{
             is_infected: false,
@@ -215,12 +210,11 @@ struct PlayerProjectileSpawner<'w, 's> {
 
 impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
     fn spawn_projectile(&mut self) {
-        let mut rng = rand::thread_rng();
         let player_position = self.players.single().translation;
     
         self.commands.spawn((
             Projectile {
-                direction: generate_velocity(&mut rng),
+                direction: Vec3::ZERO,
             },
             SpriteBundle {
                 sprite: Sprite {
@@ -255,19 +249,30 @@ fn move_projectile(
     infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
     time: Res<Time>, 
 ) {
-    let aim_type = AimingStyle::HomingClosest;
+    let aim_type = AimingStyle::Random;
 
     match aim_type {
         AimingStyle::Random => {
-            for (mut transform, projectile) in &mut projectile_query.iter_mut() {
-                transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
+            let mut rng = rand::thread_rng();
+            let velocity = generate_velocity(&mut rng);
+            for (mut transform, projectile) in &mut projectile_query {
+                if transform.translation == Vec3::ZERO {
+                    
+                    transform.translation += velocity * PROJECTILESPEED * time.delta_seconds();
+                } else {
+                    
+                    //transform.translation += velocity * PROJECTILESPEED * time.delta_seconds();
+                    let direction = transform.translation * PROJECTILESPEED * time.delta_seconds();
+                    transform.translation += direction;
+                }
+
             }
         },
         AimingStyle::HomingClosest => {
             let mut closest_distance = 1000.;
             let mut closest_infected_translation = Vec3::ZERO;
 
-            for (mut projectile_transform, _) in &mut projectile_query.iter_mut() {
+            for (mut projectile_transform, _) in &mut projectile_query {
 
                 let projectile_translation = projectile_transform.translation;
 
@@ -302,7 +307,18 @@ fn move_projectile(
         AimingStyle::Closest => println!("HomingClosest!"),
         AimingStyle::HomingMouse => println!("HomingMouse!"),
     }
+}
 
+fn dispawn_projectile(time: Res<Time>, 
+    mut projectile_query: Query<(Entity, &mut ProjectileTimer)>,
+    mut commands: Commands
+    ){
+    for (projectile_entity, mut projectile_timer) in projectile_query.iter_mut() {
+        projectile_timer.timer.tick(time.delta());
+        if projectile_timer.timer.just_finished() {
+            commands.entity(projectile_entity).despawn_recursive();
+        }
+    }
 }
 
 fn update_population_direction(
@@ -321,7 +337,7 @@ fn update_population_direction(
 }
 
 fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
-    for (mut transform, person) in &mut query.iter_mut() {
+    for (mut transform, person) in &mut query {
         transform.translation += person.direction * PERSONSPEED * time.delta_seconds();
     }
 }

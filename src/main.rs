@@ -16,7 +16,7 @@ pub const PERSONSIZE: f32 = 10.;
 
 pub const PLAYERSPEED: f32 = 100.;
 pub const ATTACKSPEED: u64 = 1;
-pub const PROJECTILESPEED: f32 = 10.;
+pub const PROJECTILESPEED: f32 = 100.;
 pub const PROJECTILELIFESPAN: u64 = 1;
 
 fn main() {
@@ -245,7 +245,7 @@ enum AimingStyle {
 }
 
 fn move_projectile(
-    mut projectile_query: Query<(&mut Transform, &Projectile)>,
+    mut projectile_query: Query<(&mut Transform, &mut Projectile)>,
     infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
     time: Res<Time>, 
 ) {
@@ -255,15 +255,12 @@ fn move_projectile(
         AimingStyle::Random => {
             let mut rng = rand::thread_rng();
             let velocity = generate_velocity(&mut rng);
-            for (mut transform, projectile) in &mut projectile_query {
-                if transform.translation == Vec3::ZERO {
-                    
-                    transform.translation += velocity * PROJECTILESPEED * time.delta_seconds();
+            for (mut transform, mut projectile) in &mut projectile_query {
+                if projectile.direction == Vec3::ZERO {
+                    projectile.direction += velocity ;
+                    transform.translation += projectile.direction.normalize() * PROJECTILESPEED * time.delta_seconds()
                 } else {
-                    
-                    //transform.translation += velocity * PROJECTILESPEED * time.delta_seconds();
-                    let direction = transform.translation * PROJECTILESPEED * time.delta_seconds();
-                    transform.translation += direction;
+                    transform.translation += projectile.direction.normalize() * PROJECTILESPEED * time.delta_seconds();
                 }
 
             }
@@ -273,23 +270,20 @@ fn move_projectile(
             let mut closest_infected_translation = Vec3::ZERO;
 
             for (mut projectile_transform, _) in &mut projectile_query {
-
                 let projectile_translation = projectile_transform.translation;
 
                 for infected_transform in &mut infected_query.iter() {
-
                     let infected_translation = infected_transform.translation;
 
                     let distance = Vec3::distance(projectile_translation, infected_translation);
 
                     if distance < closest_distance{
-
                         closest_distance = distance;
                         closest_infected_translation = infected_translation;  
                     }
                 }
 
-                 // get the vector from the projectile to the closest infected and normalize it.
+                 // get the vector from the projectile to the closest infected.
                 let to_closest = closest_infected_translation - projectile_translation;
 
                 // get the quaternion to rotate from the initial projectile facing direction to the direction

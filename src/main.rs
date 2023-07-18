@@ -477,7 +477,6 @@ fn gamepad_input(
         return;
     };
 
-    // In a real game, the buttons would be configurable, but here we hardcode them
     let up_dpad = GamepadButton {
         gamepad,
         button_type: GamepadButtonType::DPadUp,

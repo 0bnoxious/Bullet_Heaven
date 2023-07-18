@@ -3,26 +3,26 @@ use bevy::ecs::system::SystemParam;
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
-use bevy::transform::commands;
 use rand::Rng;
 use rand::rngs::ThreadRng;
 use std::time::Duration;
 
 pub const BOXSIZE: f32 = 720.;
 
-pub const PERSONCOUNT: i32 = 10;
+pub const PERSONCOUNT: i32 = 100;
+pub const INFECTEDCOUNT: i32 = 10;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
 
 pub const PLAYERSPEED: f32 = 100.;
-pub const ATTACKSPEED: u64 = 1;
-pub const PROJECTILESPEED: f32 = 100.;
-pub const PROJECTILELIFESPAN: u64 = 1;
+pub const ATTACKSPEED: u64 = 100;
+pub const PROJECTILESPEED: f32 = 150.;
+pub const PROJECTILELIFESPAN: u64 = 3;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins/*, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()*/))
-        .add_systems(Startup, (setup, spawn_player, populate))
+        .add_systems(Startup, (setup, spawn_player, spawn_person, spawn_infected))
         .add_systems(
             Update,
             (
@@ -33,15 +33,16 @@ fn main() {
                 define_space,
                 gamepad_input,
                 player_attack,
-                dispawn_projectile,
+                update_projectile_lifetime,
+                collide_projectile,
             ),
         )
+        .add_systems(Last, dispawn_dead)
         .run()
 }
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-
     commands.insert_resource(TimerRes {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
@@ -81,10 +82,14 @@ pub struct Projectile {
 pub struct Player {
     pub is_infected: bool,
     pub direction: Vec3,
+    pub aim_type: AimType,
 }
 
 #[derive(Component)]
 struct Infected;
+
+#[derive(Component)]
+struct Dead;
 
 fn define_space(mut query: Query<&mut Transform, With<Person>>) {
     let minxy = (-BOXSIZE / 2.) - PERSONSIZE / 2.;
@@ -131,11 +136,45 @@ fn spawn_player(mut commands: Commands) {
         Player{
             is_infected: false,
             direction: Vec3::ZERO,
+            aim_type: AimType::Random,
         }
     ));
 }
 
-fn populate(mut commands: Commands) {
+fn spawn_infected(mut commands: Commands) {
+    let mut rng = rand::thread_rng();
+
+    let mut v = vec![];
+    for _ in 0..INFECTEDCOUNT {
+        let posx = rng.gen_range(-BOXSIZE..=BOXSIZE);
+        let posy = rng.gen_range(-BOXSIZE..=BOXSIZE);
+
+        v.push((
+            Person {
+                direction: generate_velocity(&mut rng),
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::RED,
+                    custom_size: (Some(Vec2 {
+                        x: PERSONSIZE,
+                        y: PERSONSIZE,
+                    })),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
+                ..default()
+            },
+            InfectTimer {
+                timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
+            },
+            Infected,
+        ));
+    }
+    commands.spawn_batch(v);
+}
+
+fn spawn_person(mut commands: Commands) {
     let mut rng = rand::thread_rng();
 
     //patient 0
@@ -235,7 +274,7 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
     }
 }
 
-enum AimingStyle {
+pub enum AimType {
     Random,
     Closest,
     HomingClosest,
@@ -244,15 +283,16 @@ enum AimingStyle {
     Direction,
 }
 
+#[allow(clippy::type_complexity)]
 fn move_projectile(
     mut projectile_query: Query<(&mut Transform, &mut Projectile)>,
     infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
     time: Res<Time>, 
 ) {
-    let aim_type = AimingStyle::Random;
+    let aim_type = AimType::Closest;
 
     match aim_type {
-        AimingStyle::Random => {
+        AimType::Random => {
             let mut rng = rand::thread_rng();
             let velocity = generate_velocity(&mut rng);
             for (mut transform, mut projectile) in &mut projectile_query {
@@ -262,10 +302,9 @@ fn move_projectile(
                 } else {
                     transform.translation += projectile.direction.normalize() * PROJECTILESPEED * time.delta_seconds();
                 }
-
             }
         },
-        AimingStyle::HomingClosest => {
+        AimType::HomingClosest => {
             let mut closest_distance = 1000.;
             let mut closest_infected_translation = Vec3::ZERO;
 
@@ -296,22 +335,85 @@ fn move_projectile(
 
             }
         },
-        AimingStyle::Direction => println!("Direction!"),
-        AimingStyle::Mouse => println!("Mouse!"),
-        AimingStyle::Closest => println!("HomingClosest!"),
-        AimingStyle::HomingMouse => println!("HomingMouse!"),
+        AimType::Direction => unimplemented!(),
+        AimType::Mouse => unimplemented!(),
+        AimType::Closest => {
+            for (mut projectile_transform, mut projectile) in &mut projectile_query {
+                if projectile.direction == Vec3::ZERO{
+                    let mut closest_distance = 1000.;
+                    let mut closest_infected_translation = Vec3::ZERO;
+
+                    let projectile_translation = projectile_transform.translation;
+
+                    for infected_transform in &mut infected_query.iter() {
+                        let infected_translation = infected_transform.translation;
+
+                        let distance = Vec3::distance(projectile_translation, infected_translation);
+
+                        if distance < closest_distance{
+                            closest_distance = distance;
+                            closest_infected_translation = infected_translation;  
+                        }
+                    }
+
+                    // get the vector from the projectile to the closest infected.
+                    let to_closest = closest_infected_translation - projectile_translation;
+
+                    // get the quaternion to rotate from the initial projectile facing direction to the direction
+                    // facing the closest infected
+                    let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
+
+                    // rotate the projectile to face the closest infected
+                    projectile_transform.rotation = rotate_to_infected;
+                    projectile.direction += to_closest.normalize() * PROJECTILESPEED * time.delta_seconds();
+                }
+
+                projectile_transform.translation += projectile.direction * PROJECTILESPEED * time.delta_seconds();
+            }
+        },
+        AimType::HomingMouse => unimplemented!(),
     }
 }
 
-fn dispawn_projectile(time: Res<Time>, 
+fn update_projectile_lifetime(
+    time: Res<Time>, 
     mut projectile_query: Query<(Entity, &mut ProjectileTimer)>,
     mut commands: Commands
     ){
     for (projectile_entity, mut projectile_timer) in projectile_query.iter_mut() {
         projectile_timer.timer.tick(time.delta());
         if projectile_timer.timer.just_finished() {
-            commands.entity(projectile_entity).despawn_recursive();
+            commands.entity(projectile_entity).insert(Dead);
         }
+    }
+}
+
+fn collide_projectile(
+    mut commands: Commands,
+    mut infected_query: Query<&Transform, With<Infected>>,
+    mut projectile_transform_query: Query<(Entity, &Transform), With<Projectile>>,
+) {
+    for infected_transform in infected_query.iter_mut() {
+        let infected_translation = infected_transform.translation;
+        for (projectile_entity, projectile_transform) in projectile_transform_query.iter_mut(){
+            let projectile_translation = projectile_transform.translation;
+            let distance = Vec3::distance(projectile_translation, infected_translation);
+
+            if distance < PERSONSIZE{
+                commands.entity(projectile_entity).insert(Dead);
+            }
+        }
+    }
+}
+
+fn dispawn_dead( 
+    mut query: Query<Entity, With<Dead>>,
+    mut commands: Commands
+    ){
+    for entity in query.iter_mut() {
+
+            commands.entity(entity).despawn_recursive();
+
     }
 }
 
@@ -330,7 +432,10 @@ fn update_population_direction(
     }
 }
 
-fn move_population(mut query: Query<(&mut Transform, &Person)>, time: Res<Time>) {
+fn move_population(
+    mut query: Query<(&mut Transform, &Person)>, 
+    time: Res<Time>
+) {
     for (mut transform, person) in &mut query {
         transform.translation += person.direction * PERSONSPEED * time.delta_seconds();
     }

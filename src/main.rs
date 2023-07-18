@@ -10,7 +10,7 @@ use std::time::Duration;
 pub const BOXSIZE: f32 = 720.;
 
 pub const PERSONCOUNT: i32 = 100;
-pub const INFECTEDCOUNT: i32 = 10;
+pub const INFECTEDCOUNT: i32 = 1000;
 pub const INFECTEDHP: i32 = 3;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
@@ -38,7 +38,7 @@ fn main() {
                 collide_projectile,
             ),
         )
-        .add_systems(Last, dispawn_dead)
+        .add_systems(Last, despawn_dead)
         .run()
 }
 
@@ -272,7 +272,7 @@ fn move_projectile(
     infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
     time: Res<Time>,
 ) {
-    let aim_type = AimType::Closest;
+    let aim_type = AimType::Random;
 
     match aim_type {
         AimType::Random => {
@@ -398,7 +398,7 @@ fn collide_projectile(
     }
 }
 
-fn dispawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
+fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
     for entity in query.iter_mut() {
         commands.entity(entity).despawn_recursive();
     }

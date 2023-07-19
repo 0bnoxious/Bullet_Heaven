@@ -1,14 +1,11 @@
 use std::time::Duration;
 
-use bevy::ecs::system::SystemParam;
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 
-use crate::projectile::projectile::*;
+use crate::{global::AimType, projectile::projectile::*};
 
-pub const PLAYERSIZE: f32 = 10.;
-pub const ATTACKSPEED: u64 = 10;
-pub const PLAYERSPEED: f32 = 100.;
+use super::{ATTACKSPEED, PLAYERSIZE, PLAYERSPEED};
 
 #[derive(Component)]
 pub struct Player {
@@ -19,15 +16,6 @@ pub struct Player {
 #[derive(Component)]
 pub struct AttackTimer {
     pub timer: Timer,
-}
-
-pub enum AimType {
-    Random,
-    Closest,
-    HomingClosest,
-    Mouse,
-    HomingMouse,
-    Direction,
 }
 
 pub fn spawn_player(mut commands: Commands) {
@@ -72,39 +60,6 @@ pub fn player_attack(
         } else {
             sound_effect = "audio/ti.ogg";
         }*/
-    }
-}
-
-#[derive(SystemParam)]
-pub struct PlayerProjectileSpawner<'w, 's> {
-    commands: Commands<'w, 's>,
-    players: Query<'w, 's, &'static Transform, With<Player>>,
-}
-
-impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
-    pub fn spawn_projectile(&mut self) {
-        let player_position = self.players.single().translation;
-
-        self.commands.spawn((
-            Projectile {
-                direction: Vec3::ZERO,
-            },
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::YELLOW,
-                    custom_size: (Some(Vec2 {
-                        x: PROJECTILESIZE,
-                        y: PROJECTILESIZE,
-                    })),
-                    ..default()
-                },
-                transform: Transform::from_translation(player_position),
-                ..default()
-            },
-            ProjectileTimer {
-                timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
-            },
-        ));
     }
 }
 

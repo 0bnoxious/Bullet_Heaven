@@ -1,10 +1,16 @@
-use bevy::prelude::*;
+use std::time::Duration;
 
-use crate::{generate_velocity, person::person::*, player::player::*, Dead, Stats};
+use bevy::{ecs::system::SystemParam, prelude::*};
 
-pub const PROJECTILESPEED: f32 = 200.;
-pub const PROJECTILESIZE: f32 = 8.;
-pub const PROJECTILELIFESPAN: u64 = 1;
+use crate::{
+    generate_velocity,
+    global::AimType,
+    person::{infected::Infected, person::*, PERSONSIZE},
+    player::player::*,
+    Dead, Stats,
+};
+
+use super::{PROJECTILELIFESPAN, PROJECTILESIZE, PROJECTILESPEED};
 
 #[derive(Component)]
 pub struct ProjectileTimer {
@@ -14,6 +20,39 @@ pub struct ProjectileTimer {
 #[derive(Component)]
 pub struct Projectile {
     pub direction: Vec3,
+}
+
+#[derive(SystemParam)]
+pub struct PlayerProjectileSpawner<'w, 's> {
+    commands: Commands<'w, 's>,
+    players: Query<'w, 's, &'static Transform, With<Player>>,
+}
+
+impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
+    pub fn spawn_projectile(&mut self) {
+        let player_position = self.players.single().translation;
+
+        self.commands.spawn((
+            Projectile {
+                direction: Vec3::ZERO,
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::YELLOW,
+                    custom_size: (Some(Vec2 {
+                        x: PROJECTILESIZE,
+                        y: PROJECTILESIZE,
+                    })),
+                    ..default()
+                },
+                transform: Transform::from_translation(player_position),
+                ..default()
+            },
+            ProjectileTimer {
+                timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
+            },
+        ));
+    }
 }
 
 #[allow(clippy::type_complexity)]

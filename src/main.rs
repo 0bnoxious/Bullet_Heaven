@@ -1,23 +1,23 @@
+pub mod global;
 pub mod person;
 pub mod player;
 pub mod projectile;
 
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+//use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::prelude::*;
-use bevy::sprite::SpriteBundle;
-use person::person::*;
+use global::*;
+use person::{person::*, PERSONSIZE};
 use player::player::*;
 use projectile::projectile::*;
 use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::time::Duration;
 
-pub const BOXSIZE: f32 = 720.;
-
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins/*, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()*/))
+        //.add_plugins((DefaultPlugins, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()))
+        .add_plugins(DefaultPlugins)
         .add_systems(Startup, (setup, spawn_player, spawn_person, spawn_infected))
         .add_systems(
             Update,
@@ -39,14 +39,9 @@ fn main() {
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(PersonTimer {
+    commands.insert_resource(PersonDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
-}
-
-#[derive(Component)]
-pub struct Stats {
-    pub hit_points: i32,
 }
 
 #[derive(Component)]

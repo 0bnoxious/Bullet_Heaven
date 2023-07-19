@@ -1,3 +1,4 @@
+use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::ecs::system::SystemParam;
 use bevy::input::gamepad::GamepadButton;
@@ -5,18 +6,19 @@ use bevy::prelude::*;
 use bevy::sprite::SpriteBundle;
 use rand::rngs::ThreadRng;
 use rand::Rng;
+use std::iter::Once;
 use std::time::Duration;
 
 pub const BOXSIZE: f32 = 720.;
 
 pub const PERSONCOUNT: i32 = 100;
 pub const INFECTEDCOUNT: i32 = 1000;
-pub const INFECTEDHP: i32 = 3;
+pub const INFECTEDHP: i32 = 1;
 pub const PERSONSPEED: f32 = 50.;
 pub const PERSONSIZE: f32 = 10.;
 
 pub const PLAYERSPEED: f32 = 100.;
-pub const ATTACKSPEED: u64 = 1;
+pub const ATTACKSPEED: u64 = 10;
 pub const PROJECTILESPEED: f32 = 200.;
 pub const PROJECTILELIFESPAN: u64 = 1;
 
@@ -230,6 +232,15 @@ fn player_attack(
     attack_timer.timer.tick(time.delta());
     if attack_timer.timer.finished() {
         player_counter.spawn_projectile();
+
+        //let mut rng = rand::thread_rng();
+        /*let sound_effect;
+        // Randomly play one of the two sound effects.
+        if rng.gen_bool(0.5) {
+            sound_effect = "audio/tap.ogg";
+        } else {
+            sound_effect = "audio/ti.ogg";
+        }*/
     }
 }
 
@@ -379,6 +390,7 @@ fn collide_projectile(
     mut commands: Commands,
     mut infected_query: Query<(Entity, &Transform, &mut Stats), With<Infected>>,
     mut projectile_transform_query: Query<(Entity, &Transform), With<Projectile>>,
+    asset_server: Res<AssetServer>,
 ) {
     for (infected_entity, infected_transform, mut infected_stats) in &mut infected_query {
         let infected_translation = infected_transform.translation;

@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
 
-use crate::{global::AimType, projectile::projectile::*};
+use crate::{global::AimType, projectile::projectile_spawner::*};
 
 use super::{ATTACKSPEED, PLAYERSIZE, PLAYERSPEED};
 

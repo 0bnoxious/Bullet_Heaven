@@ -3,12 +3,9 @@ use std::time::Duration;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{
-    generate_velocity,
-    global::{Stats, BOXSIZE},
-};
+use crate::global::*;
 
-use super::{person::*, INFECTEDCOUNT, INFECTEDHP, PERSONSIZE};
+use super::{person::*, Stats, INFECTEDCOUNT, INFECTEDHP, PERSONSIZE};
 
 #[derive(Component)]
 pub struct Infected;

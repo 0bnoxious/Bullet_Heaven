@@ -2,13 +2,11 @@ use std::time::Duration;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
 
-use crate::{
-    generate_velocity,
-    global::AimType,
-    person::{infected::Infected, person::*, PERSONSIZE},
-    player::player::*,
-    Dead, Stats,
-};
+use crate::global::*;
+
+use crate::mobs::infected::Infected;
+use crate::mobs::person::Person;
+use crate::{mobs::*, player::player_spawner::*, Dead};
 
 use super::{PROJECTILELIFESPAN, PROJECTILESIZE, PROJECTILESPEED};
 
@@ -175,9 +173,13 @@ pub fn collide_projectile(
             let projectile_translation = projectile_transform.translation;
             let distance = Vec3::distance(projectile_translation, infected_translation);
 
+            /*println!(
+                "projectile : {}   infected  : {}     distance : {}",
+                projectile_translation, infected_translation, distance,
+            );*/
+
             if distance < PERSONSIZE {
                 commands.entity(projectile_entity).insert(Dead);
-
                 infected_stats.hit_points -= 1;
                 if infected_stats.hit_points <= 0 {
                     commands.entity(infected_entity).insert(Dead);

@@ -1,5 +1,5 @@
 pub mod global;
-pub mod person;
+pub mod mobs;
 pub mod player;
 pub mod projectile;
 
@@ -7,11 +7,13 @@ pub mod projectile;
 
 use bevy::prelude::*;
 use global::*;
-use person::{person::*, PERSONSIZE};
-use player::player::*;
-use projectile::projectile::*;
-use rand::rngs::ThreadRng;
-use rand::Rng;
+use mobs::{
+    infected::{infect, spawn_infected},
+    person::*,
+    PERSONSIZE,
+};
+use player::player_spawner::*;
+use projectile::projectile_spawner::*;
 use std::time::Duration;
 
 fn main() {
@@ -73,11 +75,4 @@ fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
     for entity in query.iter_mut() {
         commands.entity(entity).despawn_recursive();
     }
-}
-
-fn generate_velocity(rng: &mut ThreadRng) -> Vec3 {
-    let velx = rng.gen_range(-1.0..1.0);
-    let vely = rng.gen_range(-1.0..1.0);
-
-    Vec3::new(velx, vely, 0.)
 }

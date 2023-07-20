@@ -3,11 +3,6 @@ use rand::{rngs::ThreadRng, Rng};
 
 pub const BOXSIZE: f32 = 720.;
 
-#[derive(Component)]
-pub struct Stats {
-    pub hit_points: i32,
-}
-
 #[derive(Resource)]
 pub enum AimType {
     Random,
@@ -18,7 +13,7 @@ pub enum AimType {
     Direction,
 }
 
-fn generate_velocity(rng: &mut ThreadRng) -> Vec3 {
+pub fn generate_velocity(rng: &mut ThreadRng) -> Vec3 {
     let velx = rng.gen_range(-1.0..1.0);
     let vely = rng.gen_range(-1.0..1.0);
 

@@ -6,6 +6,7 @@ pub mod projectile;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 use global::*;
 use mobs::{
     infected::{infect, spawn_infected},
@@ -18,8 +19,12 @@ use std::time::Duration;
 
 fn main() {
     App::new()
-        //.add_plugins((DefaultPlugins, LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()))
-        .add_plugins(DefaultPlugins)
+        /* .add_plugins((
+            DefaultPlugins,
+            LogDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin::default(),
+        ))*/
+        .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
         .add_systems(Startup, (setup, spawn_player, spawn_person, spawn_infected))
         .add_systems(
             Update,

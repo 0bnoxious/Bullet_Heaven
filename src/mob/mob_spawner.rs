@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
-use crate::map::BOXSIZE;
+use crate::{global::Layer, map::BOXSIZE};
 
 use super::{InfectTimer, Person, PERSONCOUNT, PERSONSIZE, PERSONSPEED};
 
@@ -36,6 +36,7 @@ pub fn spawn_person(mut commands: Commands) {
                 y: PERSONSPEED,
             }),
             Collider::cuboid(PERSONSIZE, PERSONSIZE),
+            CollisionLayers::new([Layer::Person], [Layer::Player]),
             LockedAxes::ROTATION_LOCKED,
             InfectTimer {
                 timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
@@ -44,10 +45,3 @@ pub fn spawn_person(mut commands: Commands) {
     }
     commands.spawn_batch(v);
 }
-
-/*pub fn movement(mut query: Query<(&mut LinearVelocity)>, time: Res<Time>) {
-    for (mut velocity) in &mut query {
-        velocity.x = direction.vec3.x * 5000. * time.delta_seconds();
-        velocity.y = direction.vec3.y * 5000. * time.delta_seconds();
-    }
-}*/

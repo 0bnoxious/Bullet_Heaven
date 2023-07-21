@@ -42,14 +42,14 @@ fn main() {
         .add_systems(
             Update,
             (
-                //movement,
                 move_projectile,
                 update_person_velocity,
                 infect,
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
-                collide_projectile,
+                //collide_projectile,
+                colliding,
             ),
         )
         .add_systems(Last, despawn_dead)

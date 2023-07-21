@@ -16,6 +16,7 @@ pub enum Layer {
     Player,
     Person,
     Projectile,
+    Wall,
 }
 
 pub fn random_velocity(rng: &mut ThreadRng) -> Vec3 {

@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::{math::Vector, prelude::*};
 
-pub const BOXSIZE: f32 = 300.;
+use crate::global::Layer;
+
+pub const BOX_SIZE: f32 = 300.;
+
+#[derive(Component)]
+pub struct Wall;
 
 pub fn define_space(mut commands: Commands) {
     let square_sprite = Sprite {
@@ -20,6 +25,8 @@ pub fn define_space(mut commands: Commands) {
         RigidBody::Static,
         Position(Vector::Y * 50.0 * 6.0),
         Collider::cuboid(50.0 * 20.0, 50.0),
+        //CollisionLayers::new([Layer::Wall], [Layer::Person, Layer::Player]),
+        Wall,
     ));
     // Floor
     commands.spawn((
@@ -31,6 +38,7 @@ pub fn define_space(mut commands: Commands) {
         RigidBody::Static,
         Position(Vector::NEG_Y * 50.0 * 6.0),
         Collider::cuboid(50.0 * 20.0, 50.0),
+        Wall,
     ));
     // Left wall
     commands.spawn((
@@ -42,6 +50,7 @@ pub fn define_space(mut commands: Commands) {
         RigidBody::Static,
         Position(Vector::NEG_X * 50.0 * 9.5),
         Collider::cuboid(50.0, 50.0 * 11.0),
+        Wall,
     ));
     // Right wall
     commands.spawn((
@@ -53,5 +62,6 @@ pub fn define_space(mut commands: Commands) {
         RigidBody::Static,
         Position(Vector::X * 50.0 * 9.5),
         Collider::cuboid(50.0, 50.0 * 11.0),
+        Wall,
     ));
 }

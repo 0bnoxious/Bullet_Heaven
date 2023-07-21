@@ -7,17 +7,7 @@ use bevy_xpbd_2d::prelude::*;
 use crate::global::*;
 use crate::{global::AimType, projectile::projectile_spawner::*};
 
-use super::{ATTACKSPEED, PLAYERSIZE, PLAYERSPEED};
-
-#[derive(Component)]
-pub struct Player {
-    pub aim_type: AimType,
-}
-
-#[derive(Component)]
-pub struct AttackTimer {
-    pub timer: Timer,
-}
+use super::{AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE, PLAYER_SPEED};
 
 pub fn spawn_player(mut commands: Commands) {
     commands.spawn((
@@ -25,8 +15,8 @@ pub fn spawn_player(mut commands: Commands) {
             sprite: Sprite {
                 color: Color::BLUE,
                 custom_size: (Some(Vec2 {
-                    x: PLAYERSIZE,
-                    y: PLAYERSIZE,
+                    x: PLAYER_SIZE,
+                    y: PLAYER_SIZE,
                 })),
                 ..default()
             },
@@ -35,10 +25,10 @@ pub fn spawn_player(mut commands: Commands) {
         },
         RigidBody::Kinematic,
         Position(Vec2::new(0., 0.)),
-        Collider::cuboid(PLAYERSIZE, PLAYERSIZE),
-        CollisionLayers::new([Layer::Projectile], [Layer::Person]),
+        Collider::cuboid(PLAYER_SIZE, PLAYER_SIZE),
+        CollisionLayers::new([Layer::Player], [Layer::Person]),
         AttackTimer {
-            timer: Timer::new(Duration::from_millis(ATTACKSPEED), TimerMode::Repeating),
+            timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
         },
         Player {
             aim_type: AimType::Random,
@@ -117,6 +107,6 @@ pub fn gamepad_input(
             direction += Vec3::new(1., 0., 0.)
         }
 
-        position.0 += direction.truncate() * PLAYERSPEED;
+        position.0 += direction.truncate() * PLAYER_SPEED;
     }
 }

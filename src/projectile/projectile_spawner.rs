@@ -5,19 +5,11 @@ use bevy_xpbd_2d::prelude::*;
 
 use crate::{
     global::*,
-    mob::{infected::Infected, Stats, PERSONSIZE},
-    player::player_spawner::*,
+    mob::{infected::Infected, Person, Stats},
+    player::Player,
 };
 
-use super::{PROJECTILELIFESPAN, PROJECTILESIZE, PROJECTILESPEED};
-
-#[derive(Component)]
-pub struct ProjectileTimer {
-    pub timer: Timer,
-}
-
-#[derive(Component)]
-pub struct Projectile;
+use super::{Projectile, ProjectileTimer, PROJECTILE_LIFE_SPAN, PROJECTILE_SIZE, PROJECTILE_SPEED};
 
 #[derive(SystemParam)]
 pub struct PlayerProjectileSpawner<'w, 's> {
@@ -35,8 +27,8 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
                 sprite: Sprite {
                     color: Color::YELLOW,
                     custom_size: (Some(Vec2 {
-                        x: PROJECTILESIZE,
-                        y: PROJECTILESIZE,
+                        x: PROJECTILE_SIZE,
+                        y: PROJECTILE_SIZE,
                     })),
                     ..default()
                 },
@@ -49,12 +41,13 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
             },
             RigidBody::Kinematic,
             Position(Vec2::new(player_position.x, player_position.y)),
-            Collider::cuboid(PROJECTILESIZE, PROJECTILESIZE),
+            Collider::cuboid(PROJECTILE_SIZE, PROJECTILE_SIZE),
+            CollisionLayers::new([Layer::Projectile], [Layer::Person]),
             Closest {
                 vec3: Vec3::new(0., 0., 0.),
             },
             ProjectileTimer {
-                timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
+                timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
         ));
     }
@@ -77,8 +70,8 @@ pub fn move_projectile(
             let new_velocity = random_velocity(&mut rng);
             for (_, mut projectile_velocity, _, _) in &mut projectile_query {
                 if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
-                    projectile_velocity.x = new_velocity.x * PROJECTILESPEED;
-                    projectile_velocity.y = new_velocity.y * PROJECTILESPEED;
+                    projectile_velocity.x = new_velocity.x * PROJECTILE_SPEED;
+                    projectile_velocity.y = new_velocity.y * PROJECTILE_SPEED;
                 }
             }
         }
@@ -116,8 +109,8 @@ pub fn move_projectile(
 
                     // rotate the projectile to face the closest infected
                     *projectile_rotation = Rotation::from(rotate_to_infected);
-                    projectile_velocity.x = to_closest.x * PROJECTILESPEED;
-                    projectile_velocity.y = to_closest.y * PROJECTILESPEED;
+                    projectile_velocity.x = to_closest.x * PROJECTILE_SPEED;
+                    projectile_velocity.y = to_closest.y * PROJECTILE_SPEED;
                 }
             }
         }
@@ -157,8 +150,8 @@ pub fn move_projectile(
 
                 // rotate the projectile to face the closest infected
                 *projectile_rotation = Rotation::from(rotate_to_infected);
-                projectile_velocity.x = to_closest.x * PROJECTILESPEED;
-                projectile_velocity.y = to_closest.y * PROJECTILESPEED;
+                projectile_velocity.x = to_closest.x * PROJECTILE_SPEED;
+                projectile_velocity.y = to_closest.y * PROJECTILE_SPEED;
             }
         }
     }
@@ -177,29 +170,27 @@ pub fn update_projectile_lifetime(
     }
 }
 
-pub fn collide_projectile(
+pub fn colliding(
     mut commands: Commands,
-    mut infected_query: Query<(Entity, &Transform, &mut Stats), With<Infected>>,
-    mut projectile_transform_query: Query<(Entity, &Transform), With<Projectile>>,
+    query: Query<(Entity, &CollidingEntities), With<Projectile>>,
+    mut infected_query: Query<&mut Stats, With<Infected>>,
 ) {
-    for (infected_entity, infected_transform, mut infected_stats) in &mut infected_query {
-        let infected_translation = infected_transform.translation;
-        for (projectile_entity, projectile_transform) in &mut projectile_transform_query {
-            let projectile_translation = projectile_transform.translation;
-            let distance = Vec3::distance(projectile_translation, infected_translation);
-
-            /*println!(
-                "projectile : {}   infected  : {}     distance : {}",
-                projectile_translation, infected_translation, distance,
-            );*/
-
-            if distance < PERSONSIZE {
-                commands.entity(projectile_entity).insert(Dead);
-                infected_stats.hit_points -= 1;
-                if infected_stats.hit_points <= 0 {
-                    commands.entity(infected_entity).insert(Dead);
+    for (entity, colliding_entities) in &query {
+        if !colliding_entities.is_empty() {
+            println!(
+                "{:?} is colliding with the following entities: {:?}",
+                entity, colliding_entities
+            );
+            for coll in colliding_entities.iter() {
+                // is infected
+                if let Ok(mut stats) = infected_query.get_mut(*coll) {
+                    stats.hit_points -= 1;
+                    if stats.hit_points <= 0 {
+                        commands.entity(*coll).insert(Dead);
+                    }
                 }
             }
+            commands.entity(entity).insert(Dead);
         }
     }
 }

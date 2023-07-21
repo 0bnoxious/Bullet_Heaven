@@ -3,17 +3,17 @@ use bevy_xpbd_2d::prelude::*;
 
 use crate::global::*;
 use crate::map::*;
-use crate::player::player_spawner::Player;
-use crate::projectile::projectile_spawner::Projectile;
+use crate::player::Player;
+use crate::projectile::Projectile;
 
 pub mod infected;
 pub mod mob_spawner;
 
-pub const PERSONCOUNT: i32 = 1;
-pub const PERSONSPEED: f32 = 100.;
-pub const PERSONSIZE: f32 = 10.;
-pub const INFECTEDCOUNT: i32 = 20;
-pub const INFECTEDHP: i32 = 1000;
+pub const PERSON_COUNT: i32 = 1;
+pub const PERSON_SPEED: f32 = 100.;
+pub const PERSON_SIZE: f32 = 10.;
+pub const INFECTED_COUNT: i32 = 20;
+pub const INFECTED_HP: i32 = 3;
 
 #[derive(Component)]
 pub struct Person;
@@ -44,8 +44,8 @@ pub fn update_person_velocity(
     for mut velocity in &mut velocity_query {
         if timer_res.timer.just_finished() {
             let new_velocity = random_velocity(&mut rng);
-            velocity.x = new_velocity.x * PERSONSPEED;
-            velocity.y = new_velocity.y * PERSONSPEED;
+            velocity.x = new_velocity.x * PERSON_SPEED;
+            velocity.y = new_velocity.y * PERSON_SPEED;
         }
     }
 }

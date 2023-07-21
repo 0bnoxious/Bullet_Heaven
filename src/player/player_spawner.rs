@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use bevy::input::gamepad::GamepadButton;
 use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 
 use crate::{global::AimType, projectile::projectile_spawner::*};
 
@@ -39,6 +40,7 @@ pub fn spawn_player(mut commands: Commands) {
             direction: Vec3::ZERO,
             aim_type: AimType::Random,
         },
+        Position(Vec2::new(0., 0.)),
     ));
 }
 

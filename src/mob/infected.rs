@@ -1,11 +1,9 @@
+use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::{Collider, LockedAxes, Position, RigidBody};
+use rand::Rng;
 use std::time::Duration;
 
-use bevy::prelude::*;
-use rand::Rng;
-
-use crate::global::*;
-
-use super::{person::*, Stats, INFECTEDCOUNT, INFECTEDHP, PERSONSIZE};
+use super::*;
 
 #[derive(Component)]
 pub struct Infected;
@@ -13,34 +11,38 @@ pub struct Infected;
 pub fn spawn_infected(mut commands: Commands) {
     let mut rng = rand::thread_rng();
 
+    let square_sprite = Sprite {
+        color: Color::rgb(1., 0., 0.),
+        custom_size: Some(Vec2 {
+            x: PERSONSIZE,
+            y: PERSONSIZE,
+        }),
+        ..default()
+    };
+
     let mut v = vec![];
     for _ in 0..INFECTEDCOUNT {
         let posx = rng.gen_range(-BOXSIZE..=BOXSIZE);
         let posy = rng.gen_range(-BOXSIZE..=BOXSIZE);
 
         v.push((
-            Person {
-                direction: generate_velocity(&mut rng),
-            },
+            Person,
             SpriteBundle {
-                sprite: Sprite {
-                    color: Color::RED,
-                    custom_size: (Some(Vec2 {
-                        x: PERSONSIZE,
-                        y: PERSONSIZE,
-                    })),
-                    ..default()
-                },
+                sprite: square_sprite.clone(),
                 transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
                 ..default()
+            },
+            RigidBody::Dynamic,
+            Position(Vec2::new(posx, posy)),
+            Collider::cuboid(PERSONSIZE, PERSONSIZE),
+            LockedAxes::ROTATION_LOCKED,
+            Stats {
+                hit_points: INFECTEDHP,
             },
             InfectTimer {
                 timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
             },
             Infected,
-            Stats {
-                hit_points: INFECTEDHP,
-            },
         ));
     }
     commands.spawn_batch(v);

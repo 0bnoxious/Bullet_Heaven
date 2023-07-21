@@ -1,12 +1,13 @@
 use std::time::Duration;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
+use bevy_xpbd_2d::{math::Vector, prelude::*};
 
-use crate::global::*;
-
-use crate::mobs::infected::Infected;
-use crate::mobs::person::Person;
-use crate::{mobs::*, player::player_spawner::*, Dead};
+use crate::{
+    global::*,
+    mob::{infected::Infected, Person, Stats, PERSONSIZE},
+    player::player_spawner::*,
+};
 
 use super::{PROJECTILELIFESPAN, PROJECTILESIZE, PROJECTILESPEED};
 
@@ -16,9 +17,7 @@ pub struct ProjectileTimer {
 }
 
 #[derive(Component)]
-pub struct Projectile {
-    pub direction: Vec3,
-}
+pub struct Projectile;
 
 #[derive(SystemParam)]
 pub struct PlayerProjectileSpawner<'w, 's> {
@@ -29,11 +28,10 @@ pub struct PlayerProjectileSpawner<'w, 's> {
 impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
     pub fn spawn_projectile(&mut self) {
         let player_position = self.players.single().translation;
+        let mut rng = rand::thread_rng();
 
         self.commands.spawn((
-            Projectile {
-                direction: Vec3::ZERO,
-            },
+            Projectile,
             SpriteBundle {
                 sprite: Sprite {
                     color: Color::YELLOW,
@@ -43,9 +41,16 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
                     })),
                     ..default()
                 },
-                transform: Transform::from_translation(player_position),
+                transform: Transform::from_translation(Vec3 {
+                    x: 10.,
+                    y: 10.,
+                    z: 0.0,
+                }),
                 ..default()
             },
+            RigidBody::Dynamic,
+            Position(Vec2::new(player_position.x, player_position.y)),
+            Collider::cuboid(PROJECTILESIZE, PROJECTILESIZE),
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILELIFESPAN), TimerMode::Once),
             },
@@ -55,8 +60,9 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
 
 #[allow(clippy::type_complexity)]
 pub fn move_projectile(
-    mut projectile_query: Query<(&mut Transform, &mut Projectile)>,
-    infected_query: Query<&Transform, (With<Infected>, With<Person>, Without<Projectile>)>,
+    mut projectile_query: Query<(&mut LinearVelocity, &mut Rotation), With<Projectile>>,
+    mut infected_query: Query<&Position, With<Infected>>,
+    player_query: Query<&Position, With<Player>>,
     time: Res<Time>,
 ) {
     let aim_type = AimType::Random;
@@ -64,19 +70,18 @@ pub fn move_projectile(
     match aim_type {
         AimType::Random => {
             let mut rng = rand::thread_rng();
-            let velocity = generate_velocity(&mut rng);
-            for (mut transform, mut projectile) in &mut projectile_query {
-                if projectile.direction == Vec3::ZERO {
-                    projectile.direction += velocity;
-                    transform.translation +=
-                        projectile.direction.normalize() * PROJECTILESPEED * time.delta_seconds()
-                } else {
-                    transform.translation +=
-                        projectile.direction.normalize() * PROJECTILESPEED * time.delta_seconds();
+            let new_velocity = random_velocity(&mut rng);
+            for (mut projectile_velocity, _) in &mut projectile_query {
+                if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
+                    projectile_velocity.x = new_velocity.x * PROJECTILESPEED;
+                    projectile_velocity.y = new_velocity.y * PROJECTILESPEED;
                 }
             }
         }
-        AimType::HomingClosest => {
+        AimType::Mouse => unimplemented!(),
+        AimType::HomingMouse => unimplemented!(),
+        AimType::HomingClosest => unimplemented!(),
+        /*AimType::HomingClosest => {
             let mut closest_distance = 1000.;
             let mut closest_infected_translation = Vec3::ZERO;
 
@@ -106,46 +111,47 @@ pub fn move_projectile(
                 projectile_transform.translation +=
                     to_closest.normalize() * PROJECTILESPEED * time.delta_seconds();
             }
-        }
-        AimType::Direction => unimplemented!(),
-        AimType::Mouse => unimplemented!(),
+        }*/
         AimType::Closest => {
-            for (mut projectile_transform, mut projectile) in &mut projectile_query {
-                if projectile.direction == Vec3::ZERO {
-                    let mut closest_distance = 1000.;
-                    let mut closest_infected_translation = Vec3::ZERO;
+            for (mut projectile_velocity, mut projectile_rotation) in &mut projectile_query {
+                if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
+                    let mut closest_distance = f32::MAX;
+                    let mut closest_infected_position = Vec3::ZERO;
+                    let player_position = Vec3::new(
+                        player_query.get_single().unwrap().x,
+                        player_query.get_single().unwrap().y,
+                        0.,
+                    );
 
-                    let projectile_translation = projectile_transform.translation;
-
-                    for infected_transform in &mut infected_query.iter() {
-                        let infected_translation = infected_transform.translation;
-
-                        let distance = Vec3::distance(projectile_translation, infected_translation);
+                    for infected_position in &mut infected_query {
+                        let distance =
+                            Vec2::distance(infected_position.0, player_position.truncate());
 
                         if distance < closest_distance {
                             closest_distance = distance;
-                            closest_infected_translation = infected_translation;
+                            closest_infected_position =
+                                Vec3::new(infected_position.x, infected_position.y, 0.);
                         }
                     }
-
                     // get the vector from the projectile to the closest infected.
-                    let to_closest = closest_infected_translation - projectile_translation;
+                    let to_closest = closest_infected_position - player_position;
 
                     // get the quaternion to rotate from the initial projectile facing direction to the direction
                     // facing the closest infected
                     let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
 
                     // rotate the projectile to face the closest infected
-                    projectile_transform.rotation = rotate_to_infected;
-                    projectile.direction +=
-                        to_closest.normalize() * PROJECTILESPEED * time.delta_seconds();
-                }
+                    *projectile_rotation = Rotation::from(rotate_to_infected);
+                    projectile_velocity.x =
+                        to_closest.normalize().x * PROJECTILESPEED * time.delta_seconds();
+                    projectile_velocity.y =
+                        to_closest.normalize().y * PROJECTILESPEED * time.delta_seconds();
 
-                projectile_transform.translation +=
-                    projectile.direction * PROJECTILESPEED * time.delta_seconds();
+                    /*projectile_transform.translation +=
+                    projectile.direction * PROJECTILESPEED * time.delta_seconds();*/
+                }
             }
         }
-        AimType::HomingMouse => unimplemented!(),
     }
 }
 

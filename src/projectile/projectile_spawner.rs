@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
-use bevy_xpbd_2d::{parry::shape::TypedShape, prelude::*};
+use bevy_xpbd_2d::prelude::*;
 
 use crate::{
     global::*,
-    mob::{infected::Infected, Person, Stats},
+    mob::{infected::Infected, Stats},
     player::Player,
 };
 
@@ -79,12 +79,16 @@ pub fn move_projectile(
                 }
             }
         }
+        // aim the position of the mouse at spawn
         AimType::Mouse => unimplemented!(),
+        // constantly aim the mouse position
         AimType::HomingMouse => unimplemented!(),
+        // aim the position of the closest target at spawn
         AimType::Closest => {
             for (_, mut projectile_velocity, mut projectile_rotation, mut projectile_closest) in
                 &mut projectile_query
             {
+                // set the velocity toward closest target at spawn
                 if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
                     let mut current_closest_distance = f32::MAX;
                     let player_position = Vec3::new(
@@ -118,6 +122,7 @@ pub fn move_projectile(
                 }
             }
         }
+        // constantly aim the closest target
         AimType::HomingClosest => {
             for (
                 projectile_position,

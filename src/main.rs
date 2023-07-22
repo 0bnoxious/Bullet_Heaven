@@ -10,6 +10,7 @@ pub mod projectile;
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
+use debug::draw_collider;
 use global::*;
 use map::define_space;
 use mob::{infected::*, mob_spawner::spawn_person, *};
@@ -49,9 +50,8 @@ fn main() {
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
-                //handle_infected_collision,
                 handle_projectile_collision,
-                draw_collider,
+                //draw_collider,
             ),
         )
         .add_systems(Last, despawn_dead)

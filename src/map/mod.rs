@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::{math::Vector, prelude::*};
 
-use crate::global::Layer;
-
-pub const BOX_SIZE: f32 = 300.;
+pub const BOX_SIZE: f32 = 260.;
 
 #[derive(Component)]
 pub struct Wall;

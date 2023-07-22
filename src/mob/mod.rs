@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
@@ -9,11 +11,12 @@ use crate::projectile::Projectile;
 pub mod infected;
 pub mod mob_spawner;
 
-pub const PERSON_COUNT: i32 = 1;
-pub const PERSON_SPEED: f32 = 10.;
+pub const PERSON_COUNT: i32 = 200;
+pub const PERSON_SPEED: f32 = 20.;
 pub const PERSON_SIZE: f32 = 10.;
-pub const INFECTED_COUNT: i32 = 1;
-pub const INFECTED_HP: i32 = 6000;
+pub const INFECTED_COUNT: i32 = 40;
+pub const INFECTED_HP: i32 = 3;
+pub const INFECTION_ATTEMPT_DELAY: u64 = 200;
 
 #[derive(Component)]
 pub struct Person;
@@ -21,6 +24,14 @@ pub struct Person;
 #[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,
+}
+
+impl Default for Stats {
+    fn default() -> Self {
+        Self {
+            hit_points: INFECTED_HP,
+        }
+    }
 }
 
 #[derive(Resource)]
@@ -31,6 +42,17 @@ pub struct PersonDirectionTimer {
 #[derive(Component)]
 pub struct InfectTimer {
     pub timer: Timer,
+}
+
+impl Default for InfectTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::new(
+                Duration::from_millis(INFECTION_ATTEMPT_DELAY),
+                TimerMode::Repeating,
+            ),
+        }
+    }
 }
 
 pub fn update_person_velocity(

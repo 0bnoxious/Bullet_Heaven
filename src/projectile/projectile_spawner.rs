@@ -5,7 +5,10 @@ use bevy_xpbd_2d::prelude::*;
 
 use crate::{
     global::*,
-    mob::{infected::Infected, Stats},
+    mob::{
+        infected::{self, Infected},
+        Stats,
+    },
     player::Player,
 };
 
@@ -45,15 +48,57 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
             RigidBody::Kinematic,
             Position(Vec2::new(player_position.x, player_position.y)),
             Collider::cuboid(PROJECTILE_SIZE * 2., PROJECTILE_SIZE * 2.),
-            CollisionLayers::new([Layer::Projectile], [Layer::Person]),
+            CollisionLayers::new([Layer::Projectile], [Layer::Infected]),
+            Restitution::new(0.),
             Closest {
                 vec3: Vec3::new(0., 0., 0.),
             },
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
-            Mass::ZERO, // Sensor,
+            // Sensor,
         ));
+    }
+}
+
+pub fn update_projectile_lifetime(
+    time: Res<Time>,
+    mut projectile_query: Query<(Entity, &mut ProjectileTimer)>,
+    mut commands: Commands,
+) {
+    for (projectile_entity, mut projectile_timer) in projectile_query.iter_mut() {
+        projectile_timer.timer.tick(time.delta());
+        if projectile_timer.timer.just_finished() {
+            commands.entity(projectile_entity).insert(Dead);
+        }
+    }
+}
+
+pub fn handle_projectile_collision(
+    mut commands: Commands,
+    mut infected_query: Query<&mut Stats, With<Infected>>,
+    mut events: EventReader<CollisionStarted>,
+    is_projectile: Query<&Projectile>,
+) {
+    let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
+        if is_projectile.get(*entity_a).is_ok() {
+            if let Ok(mut stats) = infected_query.get_mut(*entity_b) {
+                println!("allo");
+                stats.hit_points -= PROJECTILE_DAMAGE;
+                if stats.hit_points <= 0 {
+                    commands.entity(*entity_b).insert(Dead);
+                }
+                commands.entity(*entity_a).insert(Dead);
+                return true;
+            }
+        }
+        false
+    };
+
+    for CollisionStarted(entity_a, entity_b) in events.iter() {
+        if !collide(entity_a, entity_b) {
+            collide(entity_b, entity_a);
+        }
     }
 }
 
@@ -162,46 +207,6 @@ pub fn move_projectile(
                 projectile_velocity.x = to_closest.x * PROJECTILE_SPEED;
                 projectile_velocity.y = to_closest.y * PROJECTILE_SPEED;
             }
-        }
-    }
-}
-
-pub fn update_projectile_lifetime(
-    time: Res<Time>,
-    mut projectile_query: Query<(Entity, &mut ProjectileTimer)>,
-    mut commands: Commands,
-) {
-    for (projectile_entity, mut projectile_timer) in projectile_query.iter_mut() {
-        projectile_timer.timer.tick(time.delta());
-        if projectile_timer.timer.just_finished() {
-            commands.entity(projectile_entity).insert(Dead);
-        }
-    }
-}
-
-pub fn handle_projectile_collision(
-    mut commands: Commands,
-    mut infected_query: Query<&mut Stats, With<Infected>>,
-    mut events: EventReader<CollisionStarted>,
-    is_projectile: Query<&Projectile>,
-) {
-    let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
-        if is_projectile.get(*entity_a).is_ok() {
-            if let Ok(mut stats) = infected_query.get_mut(*entity_b) {
-                stats.hit_points -= PROJECTILE_DAMAGE;
-                if stats.hit_points <= 0 {
-                    commands.entity(*entity_b).insert(Dead);
-                }
-                commands.entity(*entity_a).insert(Dead);
-                return true;
-            }
-        }
-        false
-    };
-
-    for CollisionStarted(entity_a, entity_b) in events.iter() {
-        if !collide(entity_a, entity_b) {
-            collide(entity_b, entity_a);
         }
     }
 }

@@ -4,9 +4,14 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
-use crate::{global::Layer, map::BOX_SIZE};
+use crate::{
+    global::{random_velocity, Layer},
+    map::BOX_SIZE,
+};
 
-use super::{InfectTimer, Person, PERSON_COUNT, PERSON_SIZE, PERSON_SPEED};
+use super::{
+    InfectTimer, Person, INFECTION_ATTEMPT_DELAY, PERSON_COUNT, PERSON_SIZE, PERSON_SPEED,
+};
 
 pub fn spawn_person(mut commands: Commands) {
     let mut rng = rand::thread_rng();
@@ -31,15 +36,15 @@ pub fn spawn_person(mut commands: Commands) {
             },
             RigidBody::Dynamic,
             Position(Vec2::new(posx, posy)),
-            LinearVelocity(Vec2 {
-                x: PERSON_SPEED,
-                y: PERSON_SPEED,
-            }),
+            LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
             Collider::cuboid(PERSON_SIZE, PERSON_SIZE),
-            CollisionLayers::new([Layer::Person], [Layer::Player]),
+            CollisionLayers::new([Layer::Person], [Layer::Person]),
             LockedAxes::ROTATION_LOCKED,
             InfectTimer {
-                timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
+                timer: Timer::new(
+                    Duration::from_millis(INFECTION_ATTEMPT_DELAY),
+                    TimerMode::Repeating,
+                ),
             },
         ));
     }

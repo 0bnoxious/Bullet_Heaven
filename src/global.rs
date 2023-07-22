@@ -15,6 +15,7 @@ pub enum AimType {
 pub enum Layer {
     Player,
     Person,
+    Infected,
     Projectile,
     Wall,
 }

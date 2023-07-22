@@ -45,13 +45,14 @@ fn main() {
             Update,
             (
                 move_projectile,
-                //update_person_velocity,
+                update_person_velocity,
                 infect,
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 //draw_collider,
+                infected_color,
             ),
         )
         .add_systems(Last, despawn_dead)

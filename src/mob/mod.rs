@@ -10,15 +10,15 @@ pub mod infected;
 pub mod mob_spawner;
 
 pub const PERSON_COUNT: i32 = 1;
-pub const PERSON_SPEED: f32 = 100.;
+pub const PERSON_SPEED: f32 = 10.;
 pub const PERSON_SIZE: f32 = 10.;
-pub const INFECTED_COUNT: i32 = 20;
-pub const INFECTED_HP: i32 = 3;
+pub const INFECTED_COUNT: i32 = 1;
+pub const INFECTED_HP: i32 = 6000;
 
 #[derive(Component)]
 pub struct Person;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,
 }

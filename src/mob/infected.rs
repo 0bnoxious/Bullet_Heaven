@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use super::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Infected;
 
 pub fn spawn_infected(mut commands: Commands) {
@@ -43,6 +43,7 @@ pub fn spawn_infected(mut commands: Commands) {
                 timer: Timer::new(Duration::from_millis(200), TimerMode::Repeating),
             },
             Infected,
+            Mass(50000.),
         ));
     }
     commands.spawn_batch(v);

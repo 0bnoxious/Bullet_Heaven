@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
-use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_2d::{parry::shape::TypedShape, prelude::*};
 
 use crate::{
     global::*,
@@ -9,7 +9,10 @@ use crate::{
     player::Player,
 };
 
-use super::{Projectile, ProjectileTimer, PROJECTILE_LIFE_SPAN, PROJECTILE_SIZE, PROJECTILE_SPEED};
+use super::{
+    Projectile, ProjectileTimer, PROJECTILE_DAMAGE, PROJECTILE_LIFE_SPAN, PROJECTILE_SIZE,
+    PROJECTILE_SPEED,
+};
 
 #[derive(SystemParam)]
 pub struct PlayerProjectileSpawner<'w, 's> {
@@ -33,15 +36,15 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
                     ..default()
                 },
                 transform: Transform::from_translation(Vec3 {
-                    x: 10.,
-                    y: 10.,
+                    x: PROJECTILE_SIZE,
+                    y: PROJECTILE_SIZE,
                     z: 0.0,
                 }),
                 ..default()
             },
             RigidBody::Kinematic,
             Position(Vec2::new(player_position.x, player_position.y)),
-            Collider::cuboid(PROJECTILE_SIZE, PROJECTILE_SIZE),
+            Collider::cuboid(PROJECTILE_SIZE * 2., PROJECTILE_SIZE * 2.),
             CollisionLayers::new([Layer::Projectile], [Layer::Person]),
             Closest {
                 vec3: Vec3::new(0., 0., 0.),
@@ -49,6 +52,7 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
+            Mass::ZERO, // Sensor,
         ));
     }
 }
@@ -135,7 +139,7 @@ pub fn move_projectile(
                     }
                 }
 
-                // get the vector from the projectile to the closest infected.
+                // get the vector from the projectile to the closest infected and normaliwede it.
                 let to_closest = (projectile_closest_target.vec3
                     - Vec3 {
                         x: projectile_position.x,
@@ -170,27 +174,29 @@ pub fn update_projectile_lifetime(
     }
 }
 
-pub fn colliding(
+pub fn handle_projectile_collision(
     mut commands: Commands,
-    query: Query<(Entity, &CollidingEntities), With<Projectile>>,
     mut infected_query: Query<&mut Stats, With<Infected>>,
+    mut events: EventReader<CollisionStarted>,
+    is_projectile: Query<&Projectile>,
 ) {
-    for (entity, colliding_entities) in &query {
-        if !colliding_entities.is_empty() {
-            println!(
-                "{:?} is colliding with the following entities: {:?}",
-                entity, colliding_entities
-            );
-            for coll in colliding_entities.iter() {
-                // is infected
-                if let Ok(mut stats) = infected_query.get_mut(*coll) {
-                    stats.hit_points -= 1;
-                    if stats.hit_points <= 0 {
-                        commands.entity(*coll).insert(Dead);
-                    }
+    let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
+        if is_projectile.get(*entity_a).is_ok() {
+            if let Ok(mut stats) = infected_query.get_mut(*entity_b) {
+                stats.hit_points -= PROJECTILE_DAMAGE;
+                if stats.hit_points <= 0 {
+                    commands.entity(*entity_b).insert(Dead);
                 }
+                commands.entity(*entity_a).insert(Dead);
+                return true;
             }
-            commands.entity(entity).insert(Dead);
+        }
+        false
+    };
+
+    for CollisionStarted(entity_a, entity_b) in events.iter() {
+        if !collide(entity_a, entity_b) {
+            collide(entity_b, entity_a);
         }
     }
 }

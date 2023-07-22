@@ -1,3 +1,4 @@
+pub mod debug;
 pub mod global;
 pub mod map;
 pub mod mob;
@@ -43,13 +44,14 @@ fn main() {
             Update,
             (
                 move_projectile,
-                update_person_velocity,
+                //update_person_velocity,
                 infect,
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
-                //collide_projectile,
-                colliding,
+                //handle_infected_collision,
+                handle_projectile_collision,
+                draw_collider,
             ),
         )
         .add_systems(Last, despawn_dead)

@@ -2,66 +2,53 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::{Collider, LockedAxes, Position, RigidBody};
 use rand::Rng;
 
+pub const INFECTED_HP: i32 = 3;
+pub const INFECTION_ODDS: i32 = 5; // 1 in x chance to infect
+pub const INFECTED_COLOR: Color = Color::RED;
+
 use super::*;
+#[derive(Component, Debug)]
+pub struct Infected;
 
 #[derive(Bundle)]
 pub struct InfectedBundle {
     infected: Infected,
+    sprite_bundle: SpriteBundle,
     stats: Stats,
-    infect_timer: InfectTimer,
     layer: CollisionLayers,
 }
 
 impl Default for InfectedBundle {
     fn default() -> Self {
+        let square_sprite = Sprite {
+            color: INFECTED_COLOR,
+            custom_size: Some(Vec2 {
+                x: DEFAULT_MOB_SIZE,
+                y: DEFAULT_MOB_SIZE,
+            }),
+            ..default()
+        };
+
+        let mut rng = rand::thread_rng();
+        let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
+        let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
+
         Self {
             infected: Infected,
-            stats: Default::default(),
-            infect_timer: Default::default(),
+            sprite_bundle: SpriteBundle {
+                sprite: square_sprite,
+                transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
+                ..default()
+            },
             layer: CollisionLayers::new(
                 [Layer::Infected],
                 [Layer::Player, Layer::Projectile, Layer::Infected],
             ),
+            stats: Stats {
+                hit_points: INFECTED_HP,
+            },
         }
     }
-}
-
-#[derive(Component, Debug)]
-pub struct Infected;
-
-pub fn spawn_infected(mut commands: Commands) {
-    let mut rng = rand::thread_rng();
-
-    let square_sprite = Sprite {
-        color: Color::rgb(1., 0., 0.),
-        custom_size: Some(Vec2 {
-            x: PERSON_SIZE,
-            y: PERSON_SIZE,
-        }),
-        ..default()
-    };
-
-    let mut v = vec![];
-    for _ in 0..INFECTED_COUNT {
-        let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
-        let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
-
-        v.push((
-            Person,
-            SpriteBundle {
-                sprite: square_sprite.clone(),
-                transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
-                ..default()
-            },
-            RigidBody::Dynamic,
-            Position(Vec2::new(posx, posy)),
-            LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
-            Collider::cuboid(PERSON_SIZE, PERSON_SIZE),
-            LockedAxes::ROTATION_LOCKED,
-            InfectedBundle::default(),
-        ));
-    }
-    commands.spawn_batch(v);
 }
 
 #[allow(clippy::type_complexity)]
@@ -69,7 +56,7 @@ pub fn infect(
     mut commands: Commands,
     query_infected: Query<&Position, With<Infected>>,
     mut query_healthy: Query<
-        (Entity, &Position, &mut Sprite, &mut InfectTimer),
+        (Entity, &Position, &mut Sprite, &mut InfectionAttemptTimer),
         (With<Person>, Without<Infected>),
     >,
     time: Res<Time>,
@@ -82,37 +69,28 @@ pub fn infect(
                 x: healthy_position.x,
                 y: healthy_position.y,
             });
-            if distance < PERSON_SIZE {
-                //attempt to infect once every 1/5 second
+            if distance < DEFAULT_MOB_SIZE {
+                //attempt to infect once every INFECTION_ATTEMPT_DELAY_MS milliseconds
                 infect_timer.timer.tick(time.delta());
                 if infect_timer.timer.finished() {
-                    // 1/5 chance to infect
-                    if rng.gen_range(0..5) == 0 {
+                    // 1/INFECTION_ODDS chance to infect
+                    if rng.gen_range(0..INFECTION_ODDS) == 0 {
                         commands.entity(entity).despawn_recursive();
 
                         let square_sprite = Sprite {
-                            color: Color::rgb(1., 0., 0.),
+                            color: Color::RED,
                             custom_size: Some(Vec2 {
-                                x: PERSON_SIZE,
-                                y: PERSON_SIZE,
+                                x: DEFAULT_MOB_SIZE,
+                                y: DEFAULT_MOB_SIZE,
                             }),
                             ..default()
                         };
                         commands.spawn((
                             Person,
-                            SpriteBundle {
-                                sprite: square_sprite.clone(),
-                                transform: Transform::from_translation(Vec3::new(
-                                    infected_position.x,
-                                    infected_position.y,
-                                    0.,
-                                )),
-                                ..default()
-                            },
                             RigidBody::Dynamic,
                             Position(Vec2::new(infected_position.x, infected_position.y)),
                             LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
-                            Collider::cuboid(PERSON_SIZE, PERSON_SIZE),
+                            Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
                             LockedAxes::ROTATION_LOCKED,
                             InfectedBundle::default(),
                         ));
@@ -124,7 +102,7 @@ pub fn infect(
 }
 
 // TODO use change detection
-pub fn infected_color(
+/*pub fn infected_color(
     mut commands: Commands,
     mut q: Query<(Entity, &mut Sprite, &mut CollisionLayers), Added<Infected>>,
 ) {
@@ -136,6 +114,6 @@ pub fn infected_color(
         );
         commands
             .entity(e)
-            .insert((Stats::default(), InfectTimer::default()));
+            .insert((Stats::default(), InfectAttemptTimer::default()));
     }
-}
+}*/

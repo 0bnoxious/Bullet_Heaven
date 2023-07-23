@@ -10,12 +10,15 @@ pub mod projectile;
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::draw_collider;
 use global::*;
 use map::define_space;
-use mob::{infected::*, mob_spawner::spawn_person, *};
+use mob::{
+    infected::*,
+    mob_spawner::{spawn_infected, spawn_person},
+    *,
+};
 use player::player_spawner::*;
-use projectile::projectile_spawner::*;
+use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
 
 fn main() {
@@ -45,14 +48,14 @@ fn main() {
             Update,
             (
                 move_projectile,
-                update_person_velocity,
+                update_mob_velocity,
                 infect,
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 //draw_collider,
-                infected_color,
+                //infected_color,
             ),
         )
         .add_systems(Last, despawn_dead)
@@ -61,7 +64,7 @@ fn main() {
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(PersonDirectionTimer {
+    commands.insert_resource(RandomDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
 }

@@ -143,11 +143,14 @@ pub fn handle_projectile_collision(
 ) {
     let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
         if is_projectile.get(*entity_a).is_ok() {
+            // get the target's hp
             if let Ok(mut stats) = infected_query.get_mut(*entity_b) {
                 stats.hit_points -= PROJECTILE_DAMAGE;
+                // kill the target
                 if stats.hit_points <= 0 {
                     commands.entity(*entity_b).insert(Dead);
                 }
+                // delete projectile after contact
                 commands.entity(*entity_a).insert(Dead);
                 return true;
             }
@@ -155,6 +158,7 @@ pub fn handle_projectile_collision(
         false
     };
 
+    // if entity a is not a projectile, flip'em.
     for CollisionStarted(entity_a, entity_b) in events.iter() {
         if !collide(entity_a, entity_b) {
             collide(entity_b, entity_a);

@@ -10,6 +10,7 @@ pub mod projectile;
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
+use debug::{draw_collider, move_position};
 use global::*;
 use map::define_space;
 use mob::{
@@ -51,11 +52,12 @@ fn main() {
                 update_mob_velocity,
                 infect,
                 gamepad_input,
-                player_attack,
+                //player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
-                //draw_collider,
+                draw_collider,
                 //infected_color,
+                move_position,
             ),
         )
         .add_systems(Last, despawn_dead)

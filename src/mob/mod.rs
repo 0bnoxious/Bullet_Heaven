@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
@@ -16,7 +14,7 @@ pub mod infected;
 pub mod mob_spawner;
 pub mod person;
 
-pub const DEFAULT_MOB_SIZE: f32 = 10.;
+pub const DEFAULT_MOB_SIZE: f32 = 100.;
 pub const DEFAULT_MOB_HP: i32 = 3;
 pub const DEFAULT_MOB_COLOR: Color = Color::GREEN;
 
@@ -41,7 +39,6 @@ pub struct RandomDirectionTimer {
 #[derive(Bundle)]
 pub struct MobBundle {
     sprite_bundle: SpriteBundle,
-    stats: Stats,
     rigid_body: RigidBody,
     position: Position,
     collider: Collider,
@@ -68,7 +65,6 @@ impl Default for MobBundle {
                 transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
                 ..default()
             },
-            stats: Stats { hit_points: 1 },
             rigid_body: RigidBody::Dynamic,
             position: Position(Vec2 { x: posx, y: posy }),
             collider: Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
@@ -76,8 +72,12 @@ impl Default for MobBundle {
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_mob_velocity(
-    mut velocity_query: Query<&mut LinearVelocity, (Without<Projectile>, Without<Player>)>,
+    mut velocity_query: Query<
+        &mut LinearVelocity,
+        (Without<Projectile>, Without<Player>, Without<Sensor>),
+    >,
     time: Res<Time>,
     mut timer_res: ResMut<RandomDirectionTimer>,
 ) {

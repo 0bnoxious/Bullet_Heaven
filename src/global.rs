@@ -13,8 +13,10 @@ pub enum AimType {
 
 #[derive(PhysicsLayer)]
 pub enum Layer {
+    Default,
     Player,
     Person,
+    PersonSensor,
     Infected,
     Projectile,
     Wall,

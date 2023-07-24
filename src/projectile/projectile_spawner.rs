@@ -38,8 +38,6 @@ impl<'w, 's> PlayerProjectileSpawner<'w, 's> {
             Position(Vec2::new(player_position.x, player_position.y)),
             Collider::cuboid(PROJECTILE_SIZE * 2., PROJECTILE_SIZE * 2.),
             CollisionLayers::new([Layer::Projectile], [Layer::Infected]),
-            Restitution::ZERO,
-            CoefficientCombine::Min,
             Closest {
                 vec3: Vec3::new(0., 0., 0.),
             },

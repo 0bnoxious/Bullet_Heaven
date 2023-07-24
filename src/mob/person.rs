@@ -2,8 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-pub const PERSON_COUNT: i32 = 200;
-pub const PERSON_SPEED: f32 = 20.;
+pub const PERSON_SPEED: f32 = 40.;
 pub const INFECTION_ATTEMPT_DELAY_MS: u64 = 200;
 
 #[derive(Component)]

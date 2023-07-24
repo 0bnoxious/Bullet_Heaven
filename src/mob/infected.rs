@@ -1,14 +1,21 @@
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::{Collider, LockedAxes, Position, RigidBody};
+use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
 pub const INFECTED_HP: i32 = 300;
 pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 pub const INFECTED_COLOR: Color = Color::RED;
+pub const INFECTED_SPEED: f32 = 50.;
 
 use super::*;
+
 #[derive(Component, Debug)]
 pub struct Infected;
+
+#[derive(Component, Debug)]
+pub struct Target {
+    pub target: Vec2,
+}
 
 #[derive(Bundle)]
 pub struct InfectedBundle {
@@ -16,6 +23,7 @@ pub struct InfectedBundle {
     sprite_bundle: SpriteBundle,
     stats: Stats,
     layer: CollisionLayers,
+    target: Target,
 }
 
 impl Default for InfectedBundle {
@@ -35,6 +43,9 @@ impl Default for InfectedBundle {
 
         Self {
             infected: Infected,
+            target: Target {
+                target: Vec2 { x: 0., y: 0. },
+            },
             sprite_bundle: SpriteBundle {
                 sprite: square_sprite,
                 transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
@@ -109,61 +120,26 @@ pub fn infect(
     }
 }
 
-/*#[allow(clippy::type_complexity)]
-pub fn infect(
+pub fn target_player(
     mut commands: Commands,
-    query_infected: Query<&Position, With<Infected>>,
-    mut query_healthy: Query<
-        (Entity, &Position, &mut Sprite, &mut InfectionAttemptTimer),
-        (With<Person>, Without<Infected>),
-    >,
-    time: Res<Time>,
+    player_quary: Query<&Position, With<Player>>,
+    mut infected_querry: Query<&mut Target, With<Infected>>,
 ) {
-    let mut rng = rand::thread_rng();
+    let player_position: Vec2 = player_quary.single().0;
 
-    for infected_position in &query_infected {
-        for (entity, healthy_position, _, mut infect_timer) in &mut query_healthy {
-            let distance = infected_position.distance(Vec2 {
-                x: healthy_position.x,
-                y: healthy_position.y,
-            });
-            if distance < DEFAULT_MOB_SIZE {
-                //attempt to infect once every INFECTION_ATTEMPT_DELAY_MS milliseconds
-                infect_timer.timer.tick(time.delta());
-                if infect_timer.timer.finished() {
-                    // 1/INFECTION_ODDS chance to infect
-                    if rng.gen_range(0..INFECTION_ODDS) == 0 {
-                        commands.entity(entity).insert(InfectedBundle::default());
-
-                        //commands.entity(entity).despawn_recursive();
-
-                        /*commands.spawn((
-                            Person,
-                            InfectedBundle::default(),
-                            LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
-                            MobBundle::default(),
-                            Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
-                            LockedAxes::ROTATION_LOCKED,
-                        ));*/
-                    }
-                }
-            }
-        }
+    for mut infected_target in infected_querry.iter_mut() {
+        infected_target.target = player_position;
     }
-}*/
+}
 
-/*pub fn infected_color(
-    mut commands: Commands,
-    mut q: Query<(Entity, &mut Sprite, &mut CollisionLayers), Added<Infected>>,
+pub fn move_to_target(
+    mut infected_query: Query<(&mut LinearVelocity, &Position, &Target), With<Infected>>,
 ) {
-    for (e, mut sprite, mut layers) in &mut q {
-        sprite.color = Color::RED;
-        *layers = CollisionLayers::new(
-            [Layer::Infected],
-            [Layer::Player, Layer::Projectile, Layer::Infected],
-        );
-        commands
-            .entity(e)
-            .insert((Stats::default(), InfectAttemptTimer::default()));
+    for (mut velocity, position, target) in &mut infected_query {
+        // get the vector from the infected to the target and normalise it.
+        let to_player = (target.target - position.0).normalize();
+
+        velocity.x = to_player.x * INFECTED_SPEED;
+        velocity.y = to_player.y * INFECTED_SPEED;
     }
-}*/
+}

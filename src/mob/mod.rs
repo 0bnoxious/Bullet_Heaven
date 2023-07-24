@@ -14,7 +14,7 @@ pub mod infected;
 pub mod mob_spawner;
 pub mod person;
 
-pub const DEFAULT_MOB_SIZE: f32 = 100.;
+pub const DEFAULT_MOB_SIZE: f32 = 10.;
 pub const DEFAULT_MOB_HP: i32 = 3;
 pub const DEFAULT_MOB_COLOR: Color = Color::GREEN;
 

@@ -113,7 +113,7 @@ pub fn move_projectile(
                     }
                 }
 
-                // get the vector from the projectile to the closest infected and normaliwede it.
+                // get the vector from the projectile to the closest infected and normalise it.
                 let to_closest = (projectile_closest_target.vec3
                     - Vec3 {
                         x: projectile_position.x,

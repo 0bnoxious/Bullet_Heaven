@@ -31,7 +31,7 @@ pub fn move_projectile(
     mut infected_query: Query<&Position, With<Infected>>,
     player_query: Query<&Position, With<Player>>,
 ) {
-    let aim_type = AimType::HomingClosest;
+    let aim_type = AimType::Random;
 
     match aim_type {
         AimType::Random => {

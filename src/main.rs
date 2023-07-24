@@ -14,6 +14,7 @@ use bevy_xpbd_2d::prelude::*;
 use debug::{draw_collider, move_position};
 use global::*;
 use map::define_space;
+use mob::mob_spawner::InfectedSpawnTimer;
 use mob::{
     infected::*,
     mob_spawner::{spawn_infected, spawn_person},
@@ -35,12 +36,6 @@ fn main() {
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
         ))
-        .insert_resource(Gravity(Vec2::ZERO))
-        .insert_resource(ResolutionSettings {
-            large: Vec2::new(1920.0, 1080.0),
-            medium: Vec2::new(800.0, 600.0),
-            small: Vec2::new(640.0, 360.0),
-        })
         .add_systems(
             Startup,
             (
@@ -58,7 +53,7 @@ fn main() {
                 update_mob_velocity,
                 infect,
                 gamepad_input,
-                //player_attack,
+                player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 //draw_collider,
@@ -85,6 +80,16 @@ pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
     commands.insert_resource(RandomDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
+    });
+    commands.insert_resource(InfectedSpawnTimer {
+        timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating),
+    });
+
+    commands.insert_resource(Gravity(Vec2::ZERO));
+    commands.insert_resource(ResolutionSettings {
+        large: Vec2::new(1920.0, 1080.0),
+        medium: Vec2::new(800.0, 600.0),
+        small: Vec2::new(640.0, 360.0),
     });
 }
 

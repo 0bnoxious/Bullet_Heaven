@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
-pub const INFECTED_HP: i32 = 300;
+pub const INFECTED_HP: i32 = 3;
 pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 pub const INFECTED_COLOR: Color = Color::RED;
 pub const INFECTED_SPEED: f32 = 50.;

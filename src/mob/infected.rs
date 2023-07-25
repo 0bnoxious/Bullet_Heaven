@@ -94,11 +94,9 @@ pub fn infect(
             return false;
         };
 
-        println!("contact between healthy  and infected");
         //attempt to infect once every INFECTION_ATTEMPT_DELAY_MS milliseconds
         timer.timer.tick(time.delta());
         if timer.timer.finished() {
-            println!("infection attempt ");
             let mut rng = rand::thread_rng();
             // 1/INFECTION_ODDS chance to infect
             if rng.gen_range(0..INFECTION_ODDS) == 0 {
@@ -121,7 +119,6 @@ pub fn infect(
 }
 
 pub fn target_player(
-    mut commands: Commands,
     player_quary: Query<&Position, With<Player>>,
     mut infected_querry: Query<&mut Target, With<Infected>>,
 ) {

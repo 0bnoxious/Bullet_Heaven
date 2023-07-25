@@ -10,9 +10,9 @@ use crate::{
 pub mod projectile_spawner;
 
 pub const PROJECTILE_SIZE: f32 = 8.;
-pub const PROJECTILE_SPEED: f32 = 200.;
+pub const PROJECTILE_SPEED: f32 = 300.;
 pub const PROJECTILE_DAMAGE: i32 = 1;
-pub const PROJECTILE_LIFE_SPAN: u64 = 20;
+pub const PROJECTILE_LIFE_SPAN: u64 = 2;
 
 #[derive(Component)]
 pub struct ProjectileTimer {
@@ -31,7 +31,7 @@ pub fn move_projectile(
     mut infected_query: Query<&Position, With<Infected>>,
     player_query: Query<&Position, With<Player>>,
 ) {
-    let aim_type = AimType::Random;
+    let aim_type = AimType::Closest;
 
     match aim_type {
         AimType::Random => {

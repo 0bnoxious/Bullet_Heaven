@@ -13,7 +13,7 @@ use super::*;
 
 pub const INFECTED_COUNT: i32 = 4;
 pub const PERSON_COUNT: i32 = 2;
-pub const MAX_MOB_COUNT: i32 = 20;
+pub const MAX_MOB_COUNT: i32 = 200;
 
 #[derive(Resource)]
 pub struct InfectedSpawnTimer {
@@ -58,8 +58,6 @@ pub fn spawn_infected(
     spawn_timer_res.timer.tick(time.delta());
     if spawn_timer_res.timer.just_finished() {
         let missing_infected_count = MAX_MOB_COUNT - infected_querry.iter().count() as i32;
-        println!("there are {} missing infected!", missing_infected_count);
-
         let mut rng = rand::thread_rng();
 
         for _ in 0..missing_infected_count {
@@ -69,7 +67,8 @@ pub fn spawn_infected(
             commands.spawn((
                 RigidBody::Dynamic,
                 Position(Vec2::new(posx, posy)),
-                LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
+                //LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED), // <--- applying random velocity sometimes break the physics engine
+                LinearVelocity(Vec2::new(0., 0.)),
                 Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
                 LockedAxes::ROTATION_LOCKED,
                 InfectedBundle::default(),

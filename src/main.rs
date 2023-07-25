@@ -8,19 +8,15 @@ pub mod projectile;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::prelude::*;
-use bevy::{prelude::*, window::WindowResized};
+use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::{draw_collider, move_position};
+use debug::draw_collider;
 use global::*;
 use map::define_space;
 use mob::mob_spawner::InfectedSpawnTimer;
-use mob::{
-    infected::*,
-    mob_spawner::{spawn_infected, spawn_person},
-    *,
-};
-use player::player_spawner::*;
+use mob::{infected::*, mob_spawner::spawn_infected, *};
+use player::{player_attack, player_spawner::*};
 use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
 
@@ -32,37 +28,39 @@ fn main() {
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Bullet Heaven".into(),
+                    resolution: (1920., 1080.).into(),
+                    present_mode: PresentMode::AutoVsync,
+                    // Tells wasm to resize the window according to the available canvas
+                    fit_canvas_to_parent: true,
+                    // Tells wasm not to override default event handling, like F5, Ctrl+R etc.
+                    prevent_default_event_handling: false,
+                    window_theme: Some(WindowTheme::Dark),
+                    ..default()
+                }),
+                ..default()
+            }),
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
         ))
-        .add_systems(
-            Startup,
-            (
-                setup,
-                spawn_player,
-                //spawn_person,
-                //spawn_infected,
-                //define_space,
-            ),
-        )
+        .add_systems(Startup, (setup, spawn_player, define_space))
         .add_systems(
             Update,
             (
                 move_projectile,
                 update_mob_velocity,
-                infect,
                 gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
-                //draw_collider,
-                //infected_color,
-                move_position,
                 target_player,
                 move_to_target,
                 toggle_resolution,
                 spawn_infected,
+                //debug
+                //draw_collider,
             ),
         )
         .add_systems(Last, despawn_dead)
@@ -82,9 +80,8 @@ pub fn setup(mut commands: Commands) {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
     commands.insert_resource(InfectedSpawnTimer {
-        timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating),
+        timer: Timer::new(Duration::from_secs(5), TimerMode::Repeating),
     });
-
     commands.insert_resource(Gravity(Vec2::ZERO));
     commands.insert_resource(ResolutionSettings {
         large: Vec2::new(1920.0, 1080.0),

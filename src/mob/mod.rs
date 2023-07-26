@@ -5,6 +5,7 @@ use rand::Rng;
 use crate::global::*;
 use crate::map::BOX_SIZE;
 use crate::player::Player;
+use crate::projectile::Damage;
 use crate::projectile::Projectile;
 
 use self::infected::*;
@@ -42,6 +43,7 @@ pub struct MobBundle {
     rigid_body: RigidBody,
     position: Position,
     collider: Collider,
+    damage: Damage,
 }
 
 impl Default for MobBundle {
@@ -58,6 +60,7 @@ impl Default for MobBundle {
         let mut rng = rand::thread_rng();
         let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
+        let dmg_vec: Vec<i32> = Vec::new();
 
         Self {
             sprite_bundle: SpriteBundle {
@@ -68,6 +71,7 @@ impl Default for MobBundle {
             rigid_body: RigidBody::Dynamic,
             position: Position(Vec2 { x: posx, y: posy }),
             collider: Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
+            damage: Damage { instances: dmg_vec },
         }
     }
 }

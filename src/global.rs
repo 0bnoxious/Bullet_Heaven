@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
+use crate::{mob::Stats, projectile::Damage};
+
 #[derive(Resource)]
 pub enum AimType {
     Random,
@@ -35,4 +37,25 @@ pub struct Dead;
 #[derive(Component)]
 pub struct Closest {
     pub vec3: Vec3,
+}
+
+pub fn apply_damage(
+    mut commands: Commands,
+    mut damage_query: Query<(Entity, &mut Damage, &mut Stats)>,
+) {
+    for (entity, mut damage, mut stats) in &mut damage_query {
+        let dmg_sum: i32 = damage.instances.iter().sum();
+        stats.hit_points -= dmg_sum;
+        damage.instances.clear();
+
+        if stats.hit_points <= 0 {
+            commands.entity(entity).insert(Dead);
+        }
+    }
+}
+
+pub fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
+    for entity in query.iter_mut() {
+        commands.entity(entity).despawn_recursive();
+    }
 }

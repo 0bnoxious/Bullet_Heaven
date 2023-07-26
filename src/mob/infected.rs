@@ -24,6 +24,7 @@ pub struct InfectedBundle {
     stats: Stats,
     layer: CollisionLayers,
     target: Target,
+    damage: Damage,
 }
 
 impl Default for InfectedBundle {
@@ -40,6 +41,7 @@ impl Default for InfectedBundle {
         let mut rng = rand::thread_rng();
         let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
+        let dmg_vec: Vec<i32> = Vec::new();
 
         Self {
             infected: Infected,
@@ -63,6 +65,7 @@ impl Default for InfectedBundle {
             stats: Stats {
                 hit_points: INFECTED_HP,
             },
+            damage: Damage { instances: dmg_vec },
         }
     }
 }

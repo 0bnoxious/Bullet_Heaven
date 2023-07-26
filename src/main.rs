@@ -8,6 +8,7 @@ pub mod projectile;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::prelude::*;
+use bevy::transform::commands;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
@@ -17,7 +18,7 @@ use map::define_space;
 use mob::mob_spawner::InfectedSpawnTimer;
 use mob::{infected::*, mob_spawner::spawn_infected, *};
 use player::{player_attack, player_spawner::*};
-use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
+use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*, Damage};
 use std::time::Duration;
 
 fn main() {
@@ -59,6 +60,7 @@ fn main() {
                 move_to_target,
                 toggle_resolution,
                 spawn_infected,
+                apply_damage,
                 //debug
                 //draw_collider,
             ),
@@ -80,7 +82,7 @@ pub fn setup(mut commands: Commands) {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
     commands.insert_resource(InfectedSpawnTimer {
-        timer: Timer::new(Duration::from_secs(5), TimerMode::Repeating),
+        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
     commands.insert_resource(Gravity(Vec2::ZERO));
     commands.insert_resource(ResolutionSettings {
@@ -88,12 +90,6 @@ pub fn setup(mut commands: Commands) {
         medium: Vec2::new(800.0, 600.0),
         small: Vec2::new(640.0, 360.0),
     });
-}
-
-fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
-    for entity in query.iter_mut() {
-        commands.entity(entity).despawn_recursive();
-    }
 }
 
 /// This system shows how to request the window to a new resolution

@@ -8,17 +8,20 @@ pub mod projectile;
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::prelude::*;
-use bevy::transform::commands;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::draw_collider;
 use global::*;
+use leafwing_input_manager::prelude::*;
+use leafwing_input_manager::{errors::NearlySingularConversion, orientation::Direction};
 use map::define_space;
 use mob::mob_spawner::InfectedSpawnTimer;
 use mob::{infected::*, mob_spawner::spawn_infected, *};
-use player::{player_attack, player_spawner::*};
-use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*, Damage};
+use player::player_input::{
+    player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
+};
+use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
+use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
 
 fn main() {
@@ -28,6 +31,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
+        .insert_resource(SubstepCount(6))
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -45,6 +49,7 @@ fn main() {
             }),
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
+            InputManagerPlugin::<PlayerAction>::default(),
         ))
         .add_systems(Startup, (setup, spawn_player, define_space))
         .add_systems(
@@ -52,7 +57,6 @@ fn main() {
             (
                 move_projectile,
                 update_mob_velocity,
-                gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
@@ -63,8 +67,15 @@ fn main() {
                 apply_damage,
                 //debug
                 //draw_collider,
+                move_player,
+                swap_player_aim,
+                //cast_fireball,
             ),
         )
+        .add_systems(Update, player_walks)
+        .add_systems(Update, player_swaps_aim)
+        .add_event::<PlayerWalk>()
+        .add_event::<PlayerAimSwap>()
         .add_systems(Last, despawn_dead)
         .run()
 }

@@ -1,19 +1,22 @@
 use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
     global::*, mob::infected::Infected, projectile::projectile_spawner::PlayerProjectileSpawner,
 };
 
+use self::player_input::{PlayerAimSwap, PlayerWalk};
+
+pub mod player_input;
 pub mod player_spawner;
 
 pub const PLAYER_SIZE: f32 = 10.;
 pub const ATTACK_SPEED: u64 = 10;
+pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
 
 #[derive(Component)]
-pub struct Player {
-    pub aim_type: AimType,
-}
+pub struct Player;
 
 #[derive(Component)]
 pub struct AttackTimer {
@@ -34,3 +37,42 @@ pub fn player_attack(
         }
     }
 }
+
+pub fn move_player(
+    mut events: EventReader<PlayerWalk>,
+    mut query: Query<&mut Position, With<Player>>,
+) {
+    for player_walk_event in events.iter() {
+        let mut player_position = query.single_mut();
+        let direction_vec2: Vec2 = player_walk_event.direction.into();
+        player_position.0 += direction_vec2 * PLAYER_SPEED;
+    }
+}
+
+pub fn swap_player_aim(
+    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
+    mut aim_query: Query<&mut AimType, With<Player>>,
+) {
+    for _ in player_aim_swap_events.iter() {
+        for mut aimtype in &mut aim_query {
+            let next_aim = aimtype.next();
+            *aimtype = next_aim;
+        }
+    }
+}
+
+/*pub fn display_player_aim(
+    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
+    aim_query: Query<&AimType, With<Player>>,
+) {
+    for _ in player_aim_swap_events.iter() {
+        for mut aimtype in &mut aim_query.iter() {
+            let kosseca = &(*aimtype);
+            println!("PLAYER AIM BEFORE SWAP: {kosseca:?}");
+            let next_aim = aimtype.next();
+            aimtype = &next_aim;
+            let kosseca2 = &(*aimtype);
+            println!("PLAYER AIM AFTER SWAP : {kosseca2:?}");
+        }
+    }
+}*/

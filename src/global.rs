@@ -4,13 +4,24 @@ use rand::{rngs::ThreadRng, Rng};
 
 use crate::{mob::Stats, projectile::Damage};
 
-#[derive(Resource)]
+#[derive(Component, Debug)]
 pub enum AimType {
     Random,
     Closest,
     HomingClosest,
-    Mouse,
-    HomingMouse,
+    //Mouse,
+    //HomingMouse,
+}
+
+impl AimType {
+    pub fn next(&self) -> Self {
+        use AimType::*;
+        match *self {
+            Random => Closest,
+            Closest => HomingClosest,
+            HomingClosest => Random,
+        }
+    }
 }
 
 #[derive(PhysicsLayer)]

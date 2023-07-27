@@ -13,7 +13,7 @@ use super::*;
 
 pub const INFECTED_COUNT: i32 = 4;
 pub const PERSON_COUNT: i32 = 2;
-pub const MAX_MOB_COUNT: i32 = 200;
+pub const MAX_MOB_COUNT: i32 = 500;
 
 #[derive(Resource)]
 pub struct InfectedSpawnTimer {

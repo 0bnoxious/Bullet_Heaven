@@ -3,7 +3,6 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use leafwing_input_manager::prelude::*;
-use leafwing_input_manager::{errors::NearlySingularConversion, orientation::Direction};
 
 use crate::global::AimType;
 use crate::global::*;

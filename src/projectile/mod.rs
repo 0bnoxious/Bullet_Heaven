@@ -1,11 +1,7 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{
-    global::*,
-    mob::{infected::Infected, Stats},
-    player::Player,
-};
+use crate::{global::*, mob::infected::Infected, player::Player};
 
 pub mod projectile_spawner;
 

@@ -13,10 +13,9 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 use global::*;
 use leafwing_input_manager::prelude::*;
-use leafwing_input_manager::{errors::NearlySingularConversion, orientation::Direction};
 use map::define_space;
-use mob::mob_spawner::InfectedSpawnTimer;
-use mob::{infected::*, mob_spawner::spawn_infected, *};
+use mob::spawner::SpawnTimer;
+use mob::{infected::*, spawner::spawn_infected, *};
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
@@ -69,7 +68,6 @@ fn main() {
                 //draw_collider,
                 move_player,
                 swap_player_aim,
-                //cast_fireball,
             ),
         )
         .add_systems(Update, player_walks)
@@ -92,7 +90,7 @@ pub fn setup(mut commands: Commands) {
     commands.insert_resource(RandomDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
-    commands.insert_resource(InfectedSpawnTimer {
+    commands.insert_resource(SpawnTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
     commands.insert_resource(Gravity(Vec2::ZERO));

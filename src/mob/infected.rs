@@ -3,9 +3,13 @@ use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
 pub const INFECTED_HP: i32 = 3;
+pub const DEFAULT_MOB_DEFENSE: i32 = 0;
+pub const DEFAULT_MOB_DAMAGE: i32 = 1;
+pub const DEFAULT_MOB_ATTACK_SPEED: f32 = 1.;
+pub const DEFAULT_MOB_MOVEMENT_SPEED: f32 = 10.;
 pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 pub const INFECTED_COLOR: Color = Color::RED;
-pub const INFECTED_SPEED: f32 = 50.;
+pub const INFECTED_MOVEMENT_SPEED: f32 = 50.;
 
 use super::*;
 
@@ -24,6 +28,7 @@ pub struct InfectedBundle {
     stats: Stats,
     layer: CollisionLayers,
     target: Target,
+    damage: Damage,
 }
 
 impl Default for InfectedBundle {
@@ -40,6 +45,7 @@ impl Default for InfectedBundle {
         let mut rng = rand::thread_rng();
         let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
+        let dmg_vec: Vec<i32> = Vec::new();
 
         Self {
             infected: Infected,
@@ -62,7 +68,12 @@ impl Default for InfectedBundle {
             ),
             stats: Stats {
                 hit_points: INFECTED_HP,
+                movement_speed: INFECTED_MOVEMENT_SPEED,
+                attack_speed: DEFAULT_MOB_ATTACK_SPEED,
+                defense: DEFAULT_MOB_DEFENSE,
+                damage: DEFAULT_MOB_DAMAGE,
             },
+            damage: Damage { instances: dmg_vec },
         }
     }
 }
@@ -70,7 +81,7 @@ impl Default for InfectedBundle {
 #[allow(clippy::type_complexity)]
 pub fn infect(
     mut commands: Commands,
-    mut is_healthy: Query<&mut InfectionAttemptTimer, With<Person>>,
+    mut is_healthy: Query<&mut InfectionAttemptTimer, With<Healthy>>,
     is_sensor: Query<&Parent, With<Sensor>>,
     is_infected: Query<&Infected>,
     mut events: EventReader<Collision>,
@@ -136,7 +147,7 @@ pub fn move_to_target(
         // get the vector from the infected to the target and normalise it.
         let to_player = (target.target - position.0).normalize();
 
-        velocity.x = to_player.x * INFECTED_SPEED;
-        velocity.y = to_player.y * INFECTED_SPEED;
+        velocity.x = to_player.x * INFECTED_MOVEMENT_SPEED;
+        velocity.y = to_player.y * INFECTED_MOVEMENT_SPEED;
     }
 }

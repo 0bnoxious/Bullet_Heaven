@@ -1,11 +1,7 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{
-    global::*,
-    mob::{infected::Infected, Stats},
-    player::Player,
-};
+use crate::{global::*, mob::infected::Infected, player::Player};
 
 pub mod projectile_spawner;
 
@@ -19,6 +15,11 @@ pub struct ProjectileTimer {
     pub timer: Timer,
 }
 
+#[derive(Component)]
+pub struct Damage {
+    pub instances: Vec<i32>,
+}
+
 #[derive(Component, Debug)]
 pub struct Projectile;
 
@@ -30,8 +31,9 @@ pub fn move_projectile(
     >,
     mut infected_query: Query<&Position, With<Infected>>,
     player_query: Query<&Position, With<Player>>,
+    player_aim_query: Query<&AimType, With<Player>>,
 ) {
-    let aim_type = AimType::Closest;
+    let aim_type = player_aim_query.single();
 
     match aim_type {
         AimType::Random => {
@@ -46,10 +48,10 @@ pub fn move_projectile(
         }
 
         // aim the position of the mouse at spawn
-        AimType::Mouse => unimplemented!(),
+        //AimType::Mouse => unimplemented!(),
 
         // constantly aim the mouse position
-        AimType::HomingMouse => unimplemented!(),
+        //AimType::HomingMouse => unimplemented!(),
 
         // aim the position of the closest target at spawn
         AimType::Closest => {
@@ -137,19 +139,16 @@ pub fn move_projectile(
 
 pub fn handle_projectile_collision(
     mut commands: Commands,
-    mut infected_query: Query<&mut Stats, With<Infected>>,
+    mut infected_query: Query<&mut Damage, With<Infected>>,
     mut events: EventReader<CollisionStarted>,
     is_projectile: Query<&Projectile>,
 ) {
     let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
         if is_projectile.get(*entity_a).is_ok() {
-            // get the target's hp
-            if let Ok(mut stats) = infected_query.get_mut(*entity_b) {
-                stats.hit_points -= PROJECTILE_DAMAGE;
-                // kill the target
-                if stats.hit_points <= 0 {
-                    commands.entity(*entity_b).insert(Dead);
-                }
+            // get the target's damage stack
+            if let Ok(mut damage) = infected_query.get_mut(*entity_b) {
+                // add the projectile damage to the damage stack
+                damage.instances.push(PROJECTILE_DAMAGE);
                 // delete projectile after contact
                 commands.entity(*entity_a).insert(Dead);
                 return true;

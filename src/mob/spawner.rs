@@ -11,23 +11,25 @@ use crate::{
 
 use super::*;
 
-pub const INFECTED_COUNT: i32 = 4;
-pub const PERSON_COUNT: i32 = 2;
-pub const MAX_MOB_COUNT: i32 = 200;
+pub const MAX_MOB_COUNT: i32 = 500;
+pub const INFECTED_RATIO: i32 = 1;
+pub const HEALTHY_RATIO: i32 = 1;
+pub const INFECTED_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * INFECTED_RATIO;
+pub const HEALTHY_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * HEALTHY_RATIO;
 
 #[derive(Resource)]
-pub struct InfectedSpawnTimer {
+pub struct SpawnTimer {
     pub timer: Timer,
 }
 
-pub fn spawn_person(mut commands: Commands) {
+pub fn spawn_healthy(mut commands: Commands) {
     let mut rng = rand::thread_rng();
-    for _ in 0..PERSON_COUNT {
+    for _ in 0..HEALTHY_COUNT {
         commands
             .spawn((
-                Person,
+                Healthy,
                 MobBundle::default(),
-                LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED),
+                LinearVelocity(random_velocity(&mut rng).truncate() * HEALTHY_MOVEMENT_SPEED),
                 CollisionLayers::new([Layer::Person], [Layer::Person]),
                 LockedAxes::ROTATION_LOCKED,
                 InfectionAttemptTimer {
@@ -52,7 +54,7 @@ pub fn spawn_person(mut commands: Commands) {
 pub fn spawn_infected(
     mut commands: Commands,
     infected_querry: Query<&Infected>,
-    mut spawn_timer_res: ResMut<InfectedSpawnTimer>,
+    mut spawn_timer_res: ResMut<SpawnTimer>,
     time: Res<Time>,
 ) {
     spawn_timer_res.timer.tick(time.delta());

@@ -16,11 +16,6 @@ use super::*;
 #[derive(Component, Debug)]
 pub struct Infected;
 
-#[derive(Component, Debug)]
-pub struct Target {
-    pub target: Vec2,
-}
-
 #[derive(Bundle)]
 pub struct InfectedBundle {
     infected: Infected,

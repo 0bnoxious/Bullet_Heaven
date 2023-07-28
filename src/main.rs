@@ -64,10 +64,10 @@ fn main() {
                 toggle_resolution,
                 spawn_infected,
                 apply_damage,
-                //debug
-                //draw_collider,
                 move_player,
                 swap_player_aim,
+                //debug
+                //draw_collider,
             ),
         )
         .add_systems(Update, player_walks)

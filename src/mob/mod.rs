@@ -44,6 +44,11 @@ impl Default for Stats {
     }
 }
 
+#[derive(Component, Debug)]
+pub struct Target {
+    pub target: Vec2,
+}
+
 #[derive(Resource)]
 pub struct RandomDirectionTimer {
     pub timer: Timer,

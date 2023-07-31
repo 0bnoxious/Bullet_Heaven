@@ -11,9 +11,9 @@ use crate::{
 
 use super::*;
 
-pub const MAX_MOB_COUNT: i32 = 500;
+pub const MAX_MOB_COUNT: i32 = 1;
 pub const INFECTED_RATIO: i32 = 1;
-pub const HEALTHY_RATIO: i32 = 1;
+pub const HEALTHY_RATIO: i32 = 0;
 pub const INFECTED_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * INFECTED_RATIO;
 pub const HEALTHY_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * HEALTHY_RATIO;
 
@@ -24,7 +24,7 @@ pub struct SpawnTimer {
 
 pub fn spawn_healthy(mut commands: Commands) {
     let mut rng = rand::thread_rng();
-    for _ in 0..HEALTHY_COUNT {
+    for _ in 0..1 {
         commands
             .spawn((
                 Healthy,
@@ -71,7 +71,7 @@ pub fn spawn_infected(
                 Position(Vec2::new(posx, posy)),
                 //LinearVelocity(random_velocity(&mut rng).truncate() * PERSON_SPEED), // <--- applying random velocity sometimes break the physics engine
                 LinearVelocity(Vec2::new(0., 0.)),
-                Collider::cuboid(DEFAULT_MOB_SIZE, DEFAULT_MOB_SIZE),
+                Collider::cuboid(INFECTED_SIZE, INFECTED_SIZE),
                 LockedAxes::ROTATION_LOCKED,
                 InfectedBundle::default(),
             ));

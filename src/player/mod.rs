@@ -11,9 +11,10 @@ pub mod player_input;
 pub mod player_spawner;
 
 pub const PLAYER_SIZE: f32 = 10.;
-pub const ATTACK_SPEED: u64 = 10;
+pub const ATTACK_SPEED: u64 = 1000;
 pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
+pub const DETECTION_ARRAY_PRECISION: i32 = 5;
 
 #[derive(Component)]
 pub struct Player;
@@ -60,19 +61,3 @@ pub fn swap_player_aim(
         }
     }
 }
-
-/*pub fn display_player_aim(
-    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
-    aim_query: Query<&AimType, With<Player>>,
-) {
-    for _ in player_aim_swap_events.iter() {
-        for mut aimtype in &mut aim_query.iter() {
-            let kosseca = &(*aimtype);
-            println!("PLAYER AIM BEFORE SWAP: {kosseca:?}");
-            let next_aim = aimtype.next();
-            aimtype = &next_aim;
-            let kosseca2 = &(*aimtype);
-            println!("PLAYER AIM AFTER SWAP : {kosseca2:?}");
-        }
-    }
-}*/

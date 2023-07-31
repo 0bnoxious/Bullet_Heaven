@@ -11,6 +11,7 @@ use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
+use debug::render_detection_zones;
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -55,8 +56,8 @@ fn main() {
             Update,
             (
                 move_projectile,
-                update_mob_velocity,
-                player_attack,
+                //update_mob_velocity,
+                //player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
@@ -68,6 +69,8 @@ fn main() {
                 swap_player_aim,
                 //debug
                 //draw_collider,
+                render_detection_zones,
+                update_detection_zone_position,
             ),
         )
         .add_systems(Update, player_walks)

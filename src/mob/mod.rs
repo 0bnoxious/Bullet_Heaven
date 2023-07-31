@@ -15,7 +15,7 @@ pub mod healthy;
 pub mod infected;
 pub mod spawner;
 
-pub const DEFAULT_MOB_SIZE: f32 = 10.;
+pub const DEFAULT_MOB_SIZE: f32 = 100.;
 pub const DEFAULT_MOB_HP: i32 = 1;
 pub const DEFAULT_MOB_DEFENSE: i32 = 0;
 pub const DEFAULT_MOB_DAMAGE: i32 = 0;
@@ -91,6 +91,11 @@ impl Default for MobBundle {
             damage: Damage { instances: dmg_vec },
         }
     }
+}
+
+#[derive(Component)]
+pub struct DetectionZone {
+    pub raycast_array: Vec<RayCaster>,
 }
 
 #[allow(clippy::type_complexity)]

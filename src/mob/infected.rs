@@ -7,9 +7,11 @@ pub const DEFAULT_MOB_DEFENSE: i32 = 0;
 pub const DEFAULT_MOB_DAMAGE: i32 = 1;
 pub const DEFAULT_MOB_ATTACK_SPEED: f32 = 1.;
 pub const DEFAULT_MOB_MOVEMENT_SPEED: f32 = 10.;
-pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
-pub const INFECTED_COLOR: Color = Color::RED;
 pub const INFECTED_MOVEMENT_SPEED: f32 = 50.;
+
+pub const INFECTED_SIZE: f32 = 100.;
+pub const INFECTED_COLOR: Color = Color::RED;
+pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 
 use super::*;
 
@@ -31,8 +33,8 @@ impl Default for InfectedBundle {
         let square_sprite = Sprite {
             color: INFECTED_COLOR,
             custom_size: Some(Vec2 {
-                x: DEFAULT_MOB_SIZE,
-                y: DEFAULT_MOB_SIZE,
+                x: INFECTED_SIZE,
+                y: INFECTED_SIZE,
             }),
             ..default()
         };
@@ -41,6 +43,13 @@ impl Default for InfectedBundle {
         let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let dmg_vec: Vec<i32> = Vec::new();
+
+        /*let detection_array = RayCaster {
+            enabled: true,
+            origin: Vec2 { x: posx, y: posy },
+            direction: Vec2::X,
+            ..Default::default()
+        },*/
 
         Self {
             infected: Infected,
@@ -69,6 +78,7 @@ impl Default for InfectedBundle {
                 damage: DEFAULT_MOB_DAMAGE,
             },
             damage: Damage { instances: dmg_vec },
+            //detection_array: todo!(),
         }
     }
 }
@@ -135,14 +145,23 @@ pub fn target_player(
     }
 }
 
+pub fn look_for_target() {}
+
 pub fn move_to_target(
     mut infected_query: Query<(&mut LinearVelocity, &Position, &Target), With<Infected>>,
 ) {
     for (mut velocity, position, target) in &mut infected_query {
-        // get the vector from the infected to the target and normalise it.
-        let to_player = (target.target - position.0).normalize();
+        let distance = Vec2::distance(position.0, target.target);
+        //println!("distance between mob and player : {distance:?}");
+        if Vec2::distance(position.0, target.target) > INFECTED_SIZE {
+            // get the vector from the infected to the target and normalise it.
+            let to_player = (target.target - position.0).normalize();
 
-        velocity.x = to_player.x * INFECTED_MOVEMENT_SPEED;
-        velocity.y = to_player.y * INFECTED_MOVEMENT_SPEED;
+            velocity.x = to_player.x * INFECTED_MOVEMENT_SPEED;
+            velocity.y = to_player.y * INFECTED_MOVEMENT_SPEED;
+        } else {
+            velocity.x = 0.;
+            velocity.y = 0.;
+        }
     }
 }

@@ -104,11 +104,11 @@ pub fn spawn_test_colliders(
         }
     }
 
-    commands.spawn((
+    /*commands.spawn((
         RigidBody::Kinematic,
         AngularVelocity(0.2),
         RayCaster::new(Vector::ZERO, Vector::X),
-    ));
+    ));*/
 }
 
 pub fn display_player_aim(

@@ -53,6 +53,7 @@ pub fn spawn_player(mut commands: Commands) {
             raycast_array: build_detection_zone(Vec2 { x: 0., y: 0. }, DETECTION_ARRAY_PRECISION),
         },
         Name::new("player"),
+        //RayCaster::new(Vec2 { x: 0., y: 0. }, Vec2 { x: 0., y: 1. }),
     ));
 }
 
@@ -103,24 +104,20 @@ pub fn build_detection_zone(origin: Vector, precision: i32) -> Vec<RayCaster> {
 
         ray_num += 1.;
 
-        detection_zone.push(RayCaster::new(
-            origin,
-            Vec2 {
-                x: direction_x,
-                y: direction_y,
-            },
-        ))
+        let query_filter =
+            SpatialQueryFilter::new().with_masks([Layer::Projectile, Layer::Infected]);
+
+        detection_zone.push(
+            RayCaster::new(
+                origin,
+                Vec2 {
+                    x: direction_x,
+                    y: direction_y,
+                },
+            )
+            .with_query_filter(query_filter),
+        )
     });
 
     detection_zone
-}
-
-pub fn update_detection_zone_position(
-    mut querry: Query<(&mut DetectionZone, &Position), With<Player>>,
-) {
-    for (mut zone, player_pos) in &mut querry {
-        for ray in zone.raycast_array.iter_mut() {
-            ray.origin = player_pos.0;
-        }
-    }
 }

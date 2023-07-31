@@ -11,7 +11,7 @@ use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::render_detection_zones;
+use debug::{render_detection_zones, render_rays, spawn_test_colliders};
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -20,7 +20,9 @@ use mob::{infected::*, spawner::spawn_infected, *};
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
-use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
+use player::{
+    move_player, player_attack, player_spawner::*, swap_player_aim, update_detection_zone_position,
+};
 use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
 
@@ -51,13 +53,20 @@ fn main() {
             WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
         ))
-        .add_systems(Startup, (setup, spawn_player, define_space))
+        .add_systems(
+            Startup,
+            (
+                setup,
+                spawn_player,
+                /*define_space,*/ spawn_test_colliders,
+            ),
+        )
         .add_systems(
             Update,
             (
                 move_projectile,
                 //update_mob_velocity,
-                //player_attack,
+                player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
@@ -69,6 +78,7 @@ fn main() {
                 swap_player_aim,
                 //debug
                 //draw_collider,
+                //render_rays,
                 render_detection_zones,
                 update_detection_zone_position,
             ),

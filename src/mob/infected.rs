@@ -9,7 +9,7 @@ pub const DEFAULT_MOB_ATTACK_SPEED: f32 = 1.;
 pub const DEFAULT_MOB_MOVEMENT_SPEED: f32 = 10.;
 pub const INFECTED_MOVEMENT_SPEED: f32 = 50.;
 
-pub const INFECTED_SIZE: f32 = 100.;
+pub const INFECTED_SIZE: f32 = 10.;
 pub const INFECTED_COLOR: Color = Color::RED;
 pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 
@@ -43,13 +43,6 @@ impl Default for InfectedBundle {
         let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let dmg_vec: Vec<i32> = Vec::new();
-
-        /*let detection_array = RayCaster {
-            enabled: true,
-            origin: Vec2 { x: posx, y: posy },
-            direction: Vec2::X,
-            ..Default::default()
-        },*/
 
         Self {
             infected: Infected,
@@ -151,7 +144,6 @@ pub fn move_to_target(
     mut infected_query: Query<(&mut LinearVelocity, &Position, &Target), With<Infected>>,
 ) {
     for (mut velocity, position, target) in &mut infected_query {
-        let distance = Vec2::distance(position.0, target.target);
         //println!("distance between mob and player : {distance:?}");
         if Vec2::distance(position.0, target.target) > INFECTED_SIZE {
             // get the vector from the infected to the target and normalise it.

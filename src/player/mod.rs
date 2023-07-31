@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
-    global::*, mob::infected::Infected, projectile::projectile_spawner::PlayerProjectileSpawner,
+    global::*,
+    mob::{infected::Infected, DetectionZone},
+    projectile::projectile_spawner::PlayerProjectileSpawner,
 };
 
 use self::player_input::{PlayerAimSwap, PlayerWalk};
@@ -11,10 +13,10 @@ pub mod player_input;
 pub mod player_spawner;
 
 pub const PLAYER_SIZE: f32 = 10.;
-pub const ATTACK_SPEED: u64 = 1000;
+pub const ATTACK_SPEED: u64 = 10;
 pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
-pub const DETECTION_ARRAY_PRECISION: i32 = 5;
+pub const DETECTION_ARRAY_PRECISION: i32 = 4;
 
 #[derive(Component)]
 pub struct Player;
@@ -58,6 +60,16 @@ pub fn swap_player_aim(
         for mut aimtype in &mut aim_query {
             let next_aim = aimtype.next();
             *aimtype = next_aim;
+        }
+    }
+}
+
+pub fn update_detection_zone_position(
+    mut querry: Query<(&mut DetectionZone, &Position), With<Player>>,
+) {
+    for (mut zone, player_pos) in &mut querry {
+        for ray in zone.raycast_array.iter_mut() {
+            ray.origin = player_pos.0;
         }
     }
 }

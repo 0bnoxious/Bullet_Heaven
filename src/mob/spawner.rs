@@ -11,7 +11,7 @@ use crate::{
 
 use super::*;
 
-pub const MAX_MOB_COUNT: i32 = 1;
+pub const MAX_MOB_COUNT: i32 = 500;
 pub const INFECTED_RATIO: i32 = 1;
 pub const HEALTHY_RATIO: i32 = 0;
 pub const INFECTED_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * INFECTED_RATIO;

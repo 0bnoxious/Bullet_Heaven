@@ -23,12 +23,12 @@ pub struct Target {
 
 #[derive(Bundle)]
 pub struct InfectedBundle {
-    infected: Infected,
-    sprite_bundle: SpriteBundle,
-    stats: Stats,
-    layer: CollisionLayers,
-    target: Target,
-    damage: Damage,
+    pub infected: Infected,
+    pub sprite_bundle: SpriteBundle,
+    pub stats: Stats,
+    pub layer: CollisionLayers,
+    pub target: Target,
+    pub damage: Damage,
 }
 
 impl Default for InfectedBundle {

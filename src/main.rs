@@ -14,6 +14,7 @@ use bevy_xpbd_2d::prelude::*;
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
+use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
 use mob::{infected::*, spawner::spawn_infected, *};
 use player::player_input::{
@@ -50,7 +51,10 @@ fn main() {
             WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
         ))
-        .add_systems(Startup, (setup, spawn_player, define_space))
+        .add_systems(
+            Startup,
+            (setup, spawn_player, define_space, spawn_waves_manager),
+        )
         .add_systems(
             Update,
             (
@@ -62,8 +66,9 @@ fn main() {
                 target_player,
                 move_to_target,
                 toggle_resolution,
-                spawn_infected,
+                //spawn_infected,
                 apply_damage,
+                manage_waves,
                 //debug
                 //draw_collider,
                 move_player,

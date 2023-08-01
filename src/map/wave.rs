@@ -1,55 +1,101 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use rand::Rng;
 
-use crate::{global::MobType, mob::infected::Infected};
+use crate::{
+    global::MobType,
+    mob::{infected::Infected, spawner::MobSpawner},
+};
 
 pub const NUMBER_OF_WAVES: i32 = 10;
-pub const TIME_BETWEEN_WAVES: u64 = 1;
-pub const DEFAULT_MAX_WAVE_MOB_COUNT: u64 = 200;
-pub const DEFAULT_DELAY_BETWEEN_SPAWN: u64 = 200;
+pub const MAX_WAVE_MOB_COUNT: u64 = 50;
+pub const TIME_BETWEEN_WAVES: u64 = 1000;
+pub const DELAY_BETWEEN_SPAWN: u64 = 1000;
 
 #[derive(Component)]
-pub struct WaveTimer {
-    timer: Timer,
+pub struct WaveManager {
+    wave_timer: Timer,
+    spawn_timer: Timer,
+    waves: Vec<Wave>,
+    wave_number: usize,
 }
 
 #[derive(Component)]
 pub struct Wave {
-    wave_number: i32,
+    //wave_number: i32,
     max_mob_count: u64,
     mobs_types: Vec<MobType>,
     kill_count: i32,
-    spawn_delay: Timer,
 }
 
 pub fn spawn_waves_manager(mut commands: Commands) {
-    let mut mob_type_vec: Vec<MobType> = Vec::new();
-    mob_type_vec.push(MobType::Infected);
-
-    commands.spawn((
-        WaveTimer {
-            timer: Timer::new(
-                Duration::from_millis(TIME_BETWEEN_WAVES),
-                TimerMode::Repeating,
-            ),
-        },
-        Wave {
-            wave_number: 1,
-            max_mob_count: DEFAULT_MAX_WAVE_MOB_COUNT,
-            mobs_types: mob_type_vec,
-            kill_count: 0,
-            spawn_delay: Timer::new(
-                Duration::from_millis(DEFAULT_DELAY_BETWEEN_SPAWN),
-                TimerMode::Repeating,
-            ),
-        },
-    ));
+    commands.spawn(WaveManager {
+        wave_timer: Timer::new(
+            Duration::from_millis(TIME_BETWEEN_WAVES),
+            TimerMode::Repeating,
+        ),
+        spawn_timer: Timer::new(
+            Duration::from_millis(DELAY_BETWEEN_SPAWN),
+            TimerMode::Repeating,
+        ),
+        waves: build_waves(),
+        wave_number: 0,
+    });
 }
 
 pub fn manage_waves(
-    mut commands: Commands,
-    mut wave_time_query: Query<&WaveTimer>,
-    mut wave_query: Query<&Wave>,
+    //mut commands: Commands,
+    mut wave_manager_query: Query<&mut WaveManager>,
+    mut mob_spawner: MobSpawner,
+    infected_query: Query<&Infected>,
+    time: Res<Time>,
 ) {
+    let mut wave_manager = wave_manager_query.single_mut();
+
+    wave_manager.wave_timer.tick(time.delta());
+    if wave_manager.wave_timer.just_finished() {
+        println!("next wave!");
+        wave_manager.wave_number += 1;
+        if wave_manager.wave_number >= 9 {
+            wave_manager.wave_number = 0;
+        }
+    }
+
+    wave_manager.spawn_timer.tick(time.delta());
+    if wave_manager.spawn_timer.just_finished() {
+        let missing_mobs = wave_manager.waves[wave_manager.wave_number].max_mob_count
+            - infected_query.iter().count() as u64;
+        println!("Spawning {} missing mob!", missing_mobs);
+
+        mob_spawner.spawn_mob(
+            wave_manager.waves[wave_manager.wave_number].mobs_types[0],
+            missing_mobs,
+        );
+    }
+}
+
+pub fn build_waves() -> Vec<Wave> {
+    let mut waves: Vec<Wave> = Vec::new();
+
+    let mut wave_num = 0;
+    for _ in 0..NUMBER_OF_WAVES {
+        let mut mob_types: Vec<MobType> = Vec::new();
+        if wave_num % 2 != 0 {
+            mob_types.push(MobType::InfectedButDifferent);
+        } else {
+            mob_types.push(MobType::Infected);
+        }
+
+        let wave = Wave {
+            //wave_number: wave_num,
+            max_mob_count: MAX_WAVE_MOB_COUNT,
+            mobs_types: mob_types,
+            kill_count: 0,
+        };
+        waves.push(wave);
+        wave_num += 1;
+    }
+
+    waves
 }

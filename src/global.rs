@@ -13,9 +13,10 @@ pub enum AimType {
     //HomingMouse,
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub enum MobType {
     Infected,
+    InfectedButDifferent,
 }
 
 impl AimType {

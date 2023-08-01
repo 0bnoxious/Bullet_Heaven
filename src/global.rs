@@ -13,6 +13,11 @@ pub enum AimType {
     //HomingMouse,
 }
 
+#[derive(Component, Debug)]
+pub enum MobType {
+    Infected,
+}
+
 impl AimType {
     pub fn next(&self) -> Self {
         use AimType::*;

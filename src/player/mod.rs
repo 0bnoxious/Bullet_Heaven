@@ -60,19 +60,3 @@ pub fn swap_player_aim(
         }
     }
 }
-
-/*pub fn display_player_aim(
-    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
-    aim_query: Query<&AimType, With<Player>>,
-) {
-    for _ in player_aim_swap_events.iter() {
-        for mut aimtype in &mut aim_query.iter() {
-            let kosseca = &(*aimtype);
-            println!("PLAYER AIM BEFORE SWAP: {kosseca:?}");
-            let next_aim = aimtype.next();
-            aimtype = &next_aim;
-            let kosseca2 = &(*aimtype);
-            println!("PLAYER AIM AFTER SWAP : {kosseca2:?}");
-        }
-    }
-}*/

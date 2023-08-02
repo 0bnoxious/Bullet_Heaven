@@ -1,3 +1,4 @@
+use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
@@ -6,7 +7,6 @@ use crate::global::*;
 use crate::map::BOX_SIZE;
 use crate::player::Player;
 use crate::projectile::Damage;
-use crate::projectile::Projectile;
 
 use self::healthy::*;
 use self::infected::*;
@@ -23,24 +23,13 @@ pub const DEFAULT_MOB_ATTACK_SPEED: f32 = 1.;
 pub const DEFAULT_MOB_MOVEMENT_SPEED: f32 = 0.;
 pub const DEFAULT_MOB_COLOR: Color = Color::BLACK;
 
-#[derive(Component, Debug)]
-pub struct Stats {
-    pub hit_points: i32,
-    pub movement_speed: f32,
-    pub attack_speed: f32,
-    pub defense: i32,
-    pub damage: i32,
-}
-
-impl Default for Stats {
-    fn default() -> Self {
-        Self {
-            hit_points: DEFAULT_MOB_HP,
-            movement_speed: DEFAULT_MOB_MOVEMENT_SPEED,
-            attack_speed: DEFAULT_MOB_ATTACK_SPEED,
-            defense: DEFAULT_MOB_DEFENSE,
-            damage: DEFAULT_MOB_DAMAGE,
-        }
+fn default_mob_stats() -> Stats {
+    Stats {
+        hit_points: DEFAULT_MOB_HP,
+        movement_speed: DEFAULT_MOB_MOVEMENT_SPEED,
+        attack_speed: DEFAULT_MOB_ATTACK_SPEED,
+        defense: DEFAULT_MOB_DEFENSE,
+        damage: DEFAULT_MOB_DAMAGE,
     }
 }
 
@@ -88,23 +77,23 @@ impl Default for MobBundle {
     }
 }
 
-#[allow(clippy::type_complexity)]
-pub fn update_mob_velocity(
-    mut velocity_query: Query<
-        &mut LinearVelocity,
-        (Without<Projectile>, Without<Player>, Without<Sensor>),
-    >,
-    time: Res<Time>,
-    mut timer_res: ResMut<RandomDirectionTimer>,
-) {
-    timer_res.timer.tick(time.delta());
+// #[allow(clippy::type_complexity)]
+// pub fn confuse_mobs(
+//     mut velocity_query: Query<
+//         &mut LinearVelocity,
+//         (Without<Projectile>, Without<Player>, Without<Sensor>),
+//     >,
+//     time: Res<Time>,
+//     mut timer_res: ResMut<RandomDirectionTimer>,
+// ) {
+//     timer_res.timer.tick(time.delta());
 
-    let mut rng = rand::thread_rng();
-    for mut velocity in &mut velocity_query {
-        if timer_res.timer.just_finished() {
-            let new_velocity = random_velocity(&mut rng);
-            velocity.x = new_velocity.x * HEALTHY_MOVEMENT_SPEED;
-            velocity.y = new_velocity.y * HEALTHY_MOVEMENT_SPEED;
-        }
-    }
-}
+//     let mut rng = rand::thread_rng();
+//     for mut velocity in &mut velocity_query {
+//         if timer_res.timer.just_finished() {
+//             let new_velocity = random_velocity(&mut rng);
+//             velocity.x = new_velocity.x * HEALTHY_MOVEMENT_SPEED;
+//             velocity.y = new_velocity.y * HEALTHY_MOVEMENT_SPEED;
+//         }
+//     }
+// }

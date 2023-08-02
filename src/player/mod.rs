@@ -9,11 +9,15 @@ use self::player_input::{PlayerAimSwap, PlayerWalk};
 
 pub mod player_input;
 pub mod player_spawner;
+pub mod weapon;
 
 pub const PLAYER_SIZE: f32 = 10.;
+pub const PLAYER_HHIT_POINTS: f32 = 100.;
 pub const ATTACK_SPEED: u64 = 10;
 pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
+pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
+pub const PLAYER_INVULNERABILITY: f64 = 1.;
 
 #[derive(Component)]
 pub struct Player;
@@ -60,19 +64,3 @@ pub fn swap_player_aim(
         }
     }
 }
-
-/*pub fn display_player_aim(
-    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
-    aim_query: Query<&AimType, With<Player>>,
-) {
-    for _ in player_aim_swap_events.iter() {
-        for mut aimtype in &mut aim_query.iter() {
-            let kosseca = &(*aimtype);
-            println!("PLAYER AIM BEFORE SWAP: {kosseca:?}");
-            let next_aim = aimtype.next();
-            aimtype = &next_aim;
-            let kosseca2 = &(*aimtype);
-            println!("PLAYER AIM AFTER SWAP : {kosseca2:?}");
-        }
-    }
-}*/

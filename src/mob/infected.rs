@@ -23,12 +23,12 @@ pub struct Target {
 
 #[derive(Bundle)]
 pub struct InfectedBundle {
-    infected: Infected,
-    sprite_bundle: SpriteBundle,
-    stats: Stats,
-    layer: CollisionLayers,
-    target: Target,
-    damage: Damage,
+    pub infected: Infected,
+    pub sprite_bundle: SpriteBundle,
+    pub stats: Stats,
+    pub layer: CollisionLayers,
+    pub target: Target,
+    pub damage: Damage,
 }
 
 impl Default for InfectedBundle {
@@ -66,13 +66,7 @@ impl Default for InfectedBundle {
                     Layer::PersonSensor,
                 ],
             ),
-            stats: Stats {
-                hit_points: INFECTED_HP,
-                movement_speed: INFECTED_MOVEMENT_SPEED,
-                attack_speed: DEFAULT_MOB_ATTACK_SPEED,
-                defense: DEFAULT_MOB_DEFENSE,
-                damage: DEFAULT_MOB_DAMAGE,
-            },
+            stats: default_mob_stats(),
             damage: Damage { instances: dmg_vec },
         }
     }

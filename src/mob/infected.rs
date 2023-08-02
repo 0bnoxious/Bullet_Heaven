@@ -66,13 +66,7 @@ impl Default for InfectedBundle {
                     Layer::PersonSensor,
                 ],
             ),
-            stats: Stats {
-                hit_points: INFECTED_HP,
-                movement_speed: INFECTED_MOVEMENT_SPEED,
-                attack_speed: DEFAULT_MOB_ATTACK_SPEED,
-                defense: DEFAULT_MOB_DEFENSE,
-                damage: DEFAULT_MOB_DAMAGE,
-            },
+            stats: default_mob_stats(),
             damage: Damage { instances: dmg_vec },
         }
     }

@@ -9,11 +9,10 @@ use crate::global::*;
 
 use super::{player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE};
 
+// must be added to the player entity
 #[derive(Bundle)]
 pub struct PlayerBundle {
     player: Player,
-    // This bundle must be added to your player entity
-    // (or whatever else you wish to control)
     input_manager: InputManagerBundle<PlayerAction>,
     aim_type: AimType,
 }

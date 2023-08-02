@@ -2,7 +2,34 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
-use crate::{mob::Stats, projectile::Damage};
+use crate::projectile::Damage;
+
+#[derive(Component, Debug)]
+pub struct Stats {
+    pub hit_points: i32,
+    pub movement_speed: f32,
+    pub attack_speed: f32,
+    pub defense: i32,
+    pub damage: i32,
+}
+
+pub const DEFAULT_HP: i32 = 1;
+pub const DEFAULT_DEFENSE: i32 = 0;
+pub const DEFAULT_DAMAGE: i32 = 0;
+pub const DEFAULT_ATTACK_SPEED: f32 = 0.;
+pub const DEFAULT_MOVEMENT_SPEED: f32 = 10.;
+
+impl Default for Stats {
+    fn default() -> Self {
+        Self {
+            hit_points: DEFAULT_HP,
+            movement_speed: DEFAULT_MOVEMENT_SPEED,
+            attack_speed: DEFAULT_ATTACK_SPEED,
+            defense: DEFAULT_DEFENSE,
+            damage: DEFAULT_DAMAGE,
+        }
+    }
+}
 
 #[derive(Component, Debug)]
 pub enum AimType {

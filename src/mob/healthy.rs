@@ -1,12 +1,11 @@
+use bevy::prelude::*;
 use std::time::Duration;
 
-use bevy::prelude::*;
-
-pub const PERSON_SPEED: f32 = 40.;
+pub const HEALTHY_MOVEMENT_SPEED: f32 = 40.;
 pub const INFECTION_ATTEMPT_DELAY_MS: u64 = 200;
 
 #[derive(Component)]
-pub struct Person;
+pub struct Healthy;
 
 #[derive(Component)]
 pub struct InfectionAttemptTimer {

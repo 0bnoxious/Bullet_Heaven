@@ -2,13 +2,62 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
-#[derive(Resource)]
+use crate::projectile::Damage;
+
+#[derive(Component, Debug)]
+pub struct Stats {
+    pub hit_points: i32,
+    pub movement_speed: f32,
+    pub attack_speed: f32,
+    pub defense: i32,
+    pub damage: i32,
+}
+
+pub const DEFAULT_HP: i32 = 1;
+pub const DEFAULT_DEFENSE: i32 = 0;
+pub const DEFAULT_DAMAGE: i32 = 0;
+pub const DEFAULT_ATTACK_SPEED: f32 = 0.;
+pub const DEFAULT_MOVEMENT_SPEED: f32 = 10.;
+
+impl Default for Stats {
+    fn default() -> Self {
+        Self {
+            hit_points: DEFAULT_HP,
+            movement_speed: DEFAULT_MOVEMENT_SPEED,
+            attack_speed: DEFAULT_ATTACK_SPEED,
+            defense: DEFAULT_DEFENSE,
+            damage: DEFAULT_DAMAGE,
+        }
+    }
+}
+
+#[derive(Component, Debug)]
 pub enum AimType {
     Random,
     Closest,
     HomingClosest,
-    Mouse,
-    HomingMouse,
+    //Mouse,
+    //HomingMouse,
+}
+
+#[derive(Component, Debug, Clone, Copy)]
+pub enum MobType {
+    Infected,
+    InfectedRanged,
+    InfectedArmored,
+    InfectedElite,
+    InfectedCommander,
+}
+
+impl AimType {
+    pub fn next(&self) -> Self {
+        use AimType::*;
+        match *self {
+            Random => Closest,
+            Closest => HomingClosest,
+            HomingClosest => Random,
+        }
+    }
 }
 
 #[derive(PhysicsLayer)]
@@ -35,4 +84,25 @@ pub struct Dead;
 #[derive(Component)]
 pub struct Closest {
     pub vec3: Vec3,
+}
+
+pub fn apply_damage(
+    mut commands: Commands,
+    mut damage_query: Query<(Entity, &mut Damage, &mut Stats)>,
+) {
+    for (entity, mut damage, mut stats) in &mut damage_query {
+        let dmg_sum: i32 = damage.instances.iter().sum();
+        stats.hit_points -= dmg_sum;
+        damage.instances.clear();
+
+        if stats.hit_points <= 0 {
+            commands.entity(entity).insert(Dead);
+        }
+    }
+}
+
+pub fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
+    for entity in query.iter_mut() {
+        commands.entity(entity).despawn_recursive();
+    }
 }

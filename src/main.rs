@@ -5,18 +5,25 @@ pub mod mob;
 pub mod player;
 pub mod projectile;
 
+//debug
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+//use debug::draw_antispawn_zone;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::draw_collider;
+
 use global::*;
+use leafwing_input_manager::prelude::*;
 use map::define_space;
-use mob::mob_spawner::InfectedSpawnTimer;
-use mob::{infected::*, mob_spawner::spawn_infected, *};
-use player::{player_attack, player_spawner::*};
+use map::wave::{manage_waves, spawn_waves_manager};
+use mob::spawner::SpawnTimer;
+use mob::{infected::*, RandomDirectionTimer};
+use player::player_input::{
+    player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
+};
+use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
 use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
 
@@ -27,6 +34,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
+        .insert_resource(SubstepCount(6))
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -44,25 +52,35 @@ fn main() {
             }),
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
+            InputManagerPlugin::<PlayerAction>::default(),
         ))
-        .add_systems(Startup, (setup, spawn_player, define_space))
+        .add_systems(
+            Startup,
+            (setup, spawn_player, define_space, spawn_waves_manager),
+        )
         .add_systems(
             Update,
             (
                 move_projectile,
-                update_mob_velocity,
-                gamepad_input,
                 player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
                 move_to_target,
                 toggle_resolution,
-                spawn_infected,
+                apply_damage,
+                manage_waves,
+                move_player,
+                swap_player_aim,
                 //debug
                 //draw_collider,
+                //draw_antispawn_zone,
             ),
         )
+        .add_systems(Update, player_walks)
+        .add_systems(Update, player_swaps_aim)
+        .add_event::<PlayerWalk>()
+        .add_event::<PlayerAimSwap>()
         .add_systems(Last, despawn_dead)
         .run()
 }
@@ -79,8 +97,8 @@ pub fn setup(mut commands: Commands) {
     commands.insert_resource(RandomDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
-    commands.insert_resource(InfectedSpawnTimer {
-        timer: Timer::new(Duration::from_secs(5), TimerMode::Repeating),
+    commands.insert_resource(SpawnTimer {
+        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });
     commands.insert_resource(Gravity(Vec2::ZERO));
     commands.insert_resource(ResolutionSettings {
@@ -88,12 +106,6 @@ pub fn setup(mut commands: Commands) {
         medium: Vec2::new(800.0, 600.0),
         small: Vec2::new(640.0, 360.0),
     });
-}
-
-fn despawn_dead(mut query: Query<Entity, With<Dead>>, mut commands: Commands) {
-    for entity in query.iter_mut() {
-        commands.entity(entity).despawn_recursive();
-    }
 }
 
 /// This system shows how to request the window to a new resolution

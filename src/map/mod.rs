@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::{math::Vector, prelude::*};
 
+pub mod wave;
+
 pub const BOX_SIZE: f32 = 260.;
 
 #[derive(Component)]
@@ -23,7 +25,6 @@ pub fn define_space(mut commands: Commands) {
         RigidBody::Static,
         Position(Vector::Y * 50.0 * 6.0),
         Collider::cuboid(50.0 * 20.0, 50.0),
-        //CollisionLayers::new([Layer::Wall], [Layer::Person, Layer::Player]),
         Wall,
     ));
     // Floor

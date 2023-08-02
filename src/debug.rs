@@ -5,6 +5,8 @@ use bevy_xpbd_2d::{
     prelude::{Collider, Sensor},
 };
 
+use crate::player::{Player, PLAYER_ANTI_MOB_SPAWN_SIZE};
+
 pub fn draw_collider(mut gizmos: Gizmos, q: Query<(&Collider, &Position)>) {
     for (colider, pos) in &q {
         match colider.as_typed_shape() {
@@ -16,6 +18,19 @@ pub fn draw_collider(mut gizmos: Gizmos, q: Query<(&Collider, &Position)>) {
             _ => todo!(),
         };
     }
+}
+
+pub fn draw_antispawn_zone(mut gizmos: Gizmos, q: Query<&Position, With<Player>>) {
+    let player = q.single();
+    gizmos.rect_2d(
+        Vec2 {
+            x: player.x,
+            y: player.y,
+        },
+        0.0,
+        Vec2::new(PLAYER_ANTI_MOB_SPAWN_SIZE, PLAYER_ANTI_MOB_SPAWN_SIZE),
+        Color::PINK,
+    )
 }
 
 pub fn move_position(mut q: Query<(&Transform, &mut Position), With<Sensor>>) {

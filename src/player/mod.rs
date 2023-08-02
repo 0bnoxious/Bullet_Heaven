@@ -11,9 +11,10 @@ pub mod player_input;
 pub mod player_spawner;
 
 pub const PLAYER_SIZE: f32 = 10.;
-pub const ATTACK_SPEED: u64 = 100;
+pub const ATTACK_SPEED: u64 = 10;
 pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
+pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
 
 #[derive(Component)]
 pub struct Player;

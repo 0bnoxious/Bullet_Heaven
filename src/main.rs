@@ -11,6 +11,7 @@ use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
+use debug::draw_antispawn_zone;
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -73,6 +74,7 @@ fn main() {
                 //draw_collider,
                 move_player,
                 swap_player_aim,
+                draw_antispawn_zone,
             ),
         )
         .add_systems(Update, player_walks)

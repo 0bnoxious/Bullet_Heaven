@@ -1,15 +1,14 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use rand::Rng;
 
 use crate::{
     global::MobType,
     mob::{infected::Infected, spawner::MobSpawner},
 };
 
-pub const NUMBER_OF_WAVES: i32 = 10;
-pub const MAX_WAVE_MOB_COUNT: u64 = 50;
+pub const NUMBER_OF_WAVES: usize = 10;
+pub const MAX_WAVE_MOB_COUNT: u64 = 500;
 pub const TIME_BETWEEN_WAVES: u64 = 1000;
 pub const DELAY_BETWEEN_SPAWN: u64 = 1000;
 
@@ -55,9 +54,8 @@ pub fn manage_waves(
 
     wave_manager.wave_timer.tick(time.delta());
     if wave_manager.wave_timer.just_finished() {
-        println!("next wave!");
         wave_manager.wave_number += 1;
-        if wave_manager.wave_number >= 9 {
+        if wave_manager.wave_number >= NUMBER_OF_WAVES {
             wave_manager.wave_number = 0;
         }
     }
@@ -66,7 +64,6 @@ pub fn manage_waves(
     if wave_manager.spawn_timer.just_finished() {
         let missing_mobs = wave_manager.waves[wave_manager.wave_number].max_mob_count
             - infected_query.iter().count() as u64;
-        println!("Spawning {} missing mob!", missing_mobs);
 
         mob_spawner.spawn_mob(
             wave_manager.waves[wave_manager.wave_number].mobs_types[0],
@@ -82,13 +79,12 @@ pub fn build_waves() -> Vec<Wave> {
     for _ in 0..NUMBER_OF_WAVES {
         let mut mob_types: Vec<MobType> = Vec::new();
         if wave_num % 2 != 0 {
-            mob_types.push(MobType::InfectedButDifferent);
+            mob_types.push(MobType::InfectedRanged);
         } else {
             mob_types.push(MobType::Infected);
         }
 
         let wave = Wave {
-            //wave_number: wave_num,
             max_mob_count: MAX_WAVE_MOB_COUNT,
             mobs_types: mob_types,
             kill_count: 0,

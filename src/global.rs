@@ -16,7 +16,10 @@ pub enum AimType {
 #[derive(Component, Debug, Clone, Copy)]
 pub enum MobType {
     Infected,
-    InfectedButDifferent,
+    InfectedRanged,
+    InfectedArmored,
+    InfectedElite,
+    InfectedCommander,
 }
 
 impl AimType {

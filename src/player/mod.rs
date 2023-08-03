@@ -2,19 +2,18 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
-    global::*, mob::infected::Infected, projectile::projectile_spawner::PlayerProjectileSpawner,
+    global::*, mob::infected::Infected, projectile::projectile_spawner::ProjectileSpawner,
+    weapon::ClosestTarget,
 };
 
 use self::player_input::{PlayerAimSwap, PlayerWalk};
 
 pub mod player_input;
 pub mod player_spawner;
-pub mod weapon;
 
 pub const PLAYER_SIZE: f32 = 10.;
 pub const PLAYER_HHIT_POINTS: f32 = 100.;
 pub const ATTACK_SPEED: u64 = 10;
-pub const BULLETS_PER_TICK: i32 = 1;
 pub const PLAYER_SPEED: f32 = 3.;
 pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
 pub const PLAYER_INVULNERABILITY: f64 = 1.;
@@ -31,13 +30,16 @@ pub fn player_attack(
     time: Res<Time>,
     mut attack_timer_query: Query<&mut AttackTimer>,
     infected_query: Query<(), With<Infected>>,
-    mut player_counter: PlayerProjectileSpawner,
+    player_pos_query: Query<&Position, With<Player>>,
+    player_target_query: Query<&Target, With<Player>>,
+    mut projectile_spawner: ProjectileSpawner,
 ) {
     if infected_query.iter().count() > 0 {
         let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
         attack_timer.timer.tick(time.delta());
         if attack_timer.timer.finished() {
-            player_counter.spawn_projectile();
+            projectile_spawner
+                .spawn_projectile(*player_pos_query.single(), *player_target_query.single());
         }
     }
 }
@@ -63,4 +65,12 @@ pub fn swap_player_aim(
             *aimtype = next_aim;
         }
     }
+}
+
+pub fn update_player_target(
+    player_target_query: Query<&mut Target, With<Player>>,
+    mut target: ClosestTarget,
+) {
+    let mut target_position = player_target_query.single().position;
+    target_position = target.infected().position;
 }

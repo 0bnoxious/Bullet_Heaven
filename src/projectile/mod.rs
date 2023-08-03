@@ -1,37 +1,46 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{global::*, mob::infected::Infected, player::Player};
+use crate::{global::*, mob::infected::Infected, player::Player, weapon::ClosestTarget};
 
 pub mod projectile_spawner;
 
 pub const PROJECTILE_SIZE: f32 = 8.;
-pub const PROJECTILE_SPEED: f32 = 600.;
+pub const PROJECTILE_SPEED: f32 = 400.;
 pub const PROJECTILE_DAMAGE: i32 = 1;
 pub const PROJECTILE_LIFE_SPAN: u64 = 2;
 
-#[derive(Component)]
-pub struct ProjectileTimer {
-    pub timer: Timer,
-}
+#[derive(Component, Debug)]
+pub struct Projectile;
 
 #[derive(Component)]
 pub struct Damage {
     pub instances: Vec<i32>,
 }
 
+#[derive(Component)]
+pub struct ProjectileTimer {
+    pub timer: Timer,
+}
+
 #[derive(Component, Debug)]
-pub struct Projectile;
+pub enum ProjectileType {
+    Bullet,
+    //Explosive,
+    //Lazer,
+    //Orbiting,
+    //Lobbing,
+}
 
 #[allow(clippy::type_complexity)]
 pub fn move_projectile(
     mut projectile_query: Query<
-        (&Position, &mut LinearVelocity, &mut Rotation, &mut Closest),
+        (&Position, &mut LinearVelocity, &mut Rotation, &mut Target),
         With<Projectile>,
     >,
-    mut infected_query: Query<&Position, With<Infected>>,
     player_query: Query<&Position, With<Player>>,
     player_aim_query: Query<&AimType, With<Player>>,
+    mut closest_target: ClosestTarget,
 ) {
     let aim_type = player_aim_query.single();
 
@@ -55,31 +64,21 @@ pub fn move_projectile(
 
         // aim the position of the closest target at spawn
         AimType::Closest => {
-            for (_, mut projectile_velocity, mut projectile_rotation, mut projectile_closest) in
-                &mut projectile_query
-            {
+            for (_, mut projectile_velocity, mut projectile_rotation, _) in &mut projectile_query {
                 // set the velocity toward closest target at spawn
                 if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
-                    let mut current_closest_distance = f32::MAX;
                     let player_position = Vec3::new(
                         player_query.get_single().unwrap().x,
                         player_query.get_single().unwrap().y,
                         0.,
                     );
 
-                    for infected_position in &mut infected_query {
-                        let distance =
-                            Vec2::distance(infected_position.0, player_position.truncate());
-
-                        if distance < current_closest_distance {
-                            current_closest_distance = distance;
-                            projectile_closest.vec3 =
-                                Vec3::new(infected_position.x, infected_position.y, 0.);
-                        }
-                    }
+                    // Cast Projectile target position as Vec3 for quat rotation
+                    let closest = closest_target.infected();
+                    let closest_vec3 = Vec3::new(closest.position.x, closest.position.y, 0.);
 
                     // get the vector from the projectile to the closest infected.
-                    let to_closest = (projectile_closest.vec3 - player_position).normalize();
+                    let to_closest = (closest_vec3 - player_position).normalize();
 
                     // get the quaternion to rotate from the initial projectile facing direction to the direction
                     // facing the closest infected
@@ -95,28 +94,15 @@ pub fn move_projectile(
 
         // constantly aim the closest target
         AimType::HomingClosest => {
-            for (
-                projectile_position,
-                mut projectile_velocity,
-                mut projectile_rotation,
-                mut projectile_closest_target,
-            ) in &mut projectile_query
+            for (projectile_position, mut projectile_velocity, mut projectile_rotation, _) in
+                &mut projectile_query
             {
-                let mut closest_distance = f32::MAX;
-                for infected_position in &mut infected_query.iter() {
-                    // get the distance between infecteds and projectiles.
-                    let distance = Vec2::distance(infected_position.0, projectile_position.0);
-
-                    if distance < closest_distance {
-                        closest_distance = distance;
-                        // closest infected position as vec3.
-                        projectile_closest_target.vec3 =
-                            Vec3::new(infected_position.x, infected_position.y, 0.);
-                    }
-                }
+                // Cast Projectile target position as Vec3 for quat rotation
+                let closest = closest_target.infected();
+                let projectile_target_vec3 = Vec3::new(closest.position.x, closest.position.y, 0.);
 
                 // get the vector from the projectile to the closest infected and normalise it.
-                let to_closest = (projectile_closest_target.vec3
+                let to_closest = (projectile_target_vec3
                     - Vec3 {
                         x: projectile_position.x,
                         y: projectile_position.y,

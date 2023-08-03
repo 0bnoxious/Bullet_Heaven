@@ -4,6 +4,7 @@ pub mod map;
 pub mod mob;
 pub mod player;
 pub mod projectile;
+pub mod weapon;
 
 //debug
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
@@ -23,9 +24,12 @@ use mob::{infected::*, RandomDirectionTimer};
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
-use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
+use player::{
+    move_player, player_attack, player_spawner::*, swap_player_aim, update_player_target,
+};
 use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
+use weapon::shotgun::fire_shotgun;
 
 fn main() {
     App::new()
@@ -56,22 +60,30 @@ fn main() {
         ))
         .add_systems(
             Startup,
-            (setup, spawn_player, define_space, spawn_waves_manager),
+            (
+                setup,
+                spawn_player,
+                define_space,
+                spawn_waves_manager,
+                //spawn_shotgun,
+            ),
         )
         .add_systems(
             Update,
             (
-                move_projectile,
-                player_attack,
+                //move_projectile,
+                //player_attack,
+                update_player_target,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
-                move_to_target,
+                //move_to_target,
                 toggle_resolution,
                 apply_damage,
                 manage_waves,
                 move_player,
                 swap_player_aim,
+                fire_shotgun,
                 //debug
                 //draw_collider,
                 //draw_antispawn_zone,

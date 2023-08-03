@@ -81,9 +81,9 @@ pub fn random_velocity(rng: &mut ThreadRng) -> Vec3 {
 #[derive(Component)]
 pub struct Dead;
 
-#[derive(Component)]
-pub struct Closest {
-    pub vec3: Vec3,
+#[derive(Component, Copy, Clone)]
+pub struct Target {
+    pub position: Position,
 }
 
 pub fn apply_damage(

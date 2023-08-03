@@ -2,59 +2,78 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
-pub const INFECTED_HP: i32 = 3;
-pub const DEFAULT_MOB_DEFENSE: i32 = 0;
-pub const DEFAULT_MOB_DAMAGE: i32 = 1;
-pub const DEFAULT_MOB_ATTACK_SPEED: f32 = 1.;
-pub const DEFAULT_MOB_MOVEMENT_SPEED: f32 = 10.;
-pub const INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
-pub const INFECTED_COLOR: Color = Color::RED;
-pub const INFECTED_MOVEMENT_SPEED: f32 = 50.;
+pub const DEFAULT_INFECTED_HP: i32 = 3;
+pub const DEFAULT_INFECTED_DEFENSE: i32 = 0;
+pub const DEFAULT_INFECTED_DAMAGE: i32 = 1;
+pub const DEFAULT_INFECTED_ATTACK_SPEED: f32 = 1.;
+pub const DEFAULT_INFECTED_MOVEMENT_SPEED: f32 = 10.;
+
+pub const DEFAULT_INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
+pub const DEFAULT_INFECTED_COLOR: Color = Color::RED;
+pub const DEFAULT_INFECTED_RANGED_COLOR: Color = Color::WHITE;
+pub const DEFAULT_INFECTED_SIZE: f32 = 10.;
 
 use super::*;
+
+pub fn default_infected_stats() -> Stats {
+    Stats {
+        hit_points: DEFAULT_INFECTED_HP,
+        movement_speed: DEFAULT_INFECTED_MOVEMENT_SPEED,
+        attack_speed: DEFAULT_INFECTED_ATTACK_SPEED,
+        defense: DEFAULT_INFECTED_DEFENSE,
+        damage: DEFAULT_INFECTED_DAMAGE,
+    }
+}
 
 #[derive(Component, Debug)]
 pub struct Infected;
 
 #[derive(Component, Debug)]
-pub struct Target {
-    pub target: Vec2,
-}
+pub struct Ranged {}
 
 #[derive(Bundle)]
 pub struct InfectedBundle {
     pub infected: Infected,
     pub sprite_bundle: SpriteBundle,
     pub stats: Stats,
+    pub rigid_body: RigidBody,
+    pub collider: Collider,
     pub layer: CollisionLayers,
-    pub target: Target,
+    pub axes: LockedAxes,
     pub damage: Damage,
+    pub name: Name,
+}
+
+#[derive(Bundle)]
+pub struct InfectedRangedBundle {
+    pub infected: Infected,
+    pub sprite_bundle: SpriteBundle,
+    pub stats: Stats,
+    pub rigid_body: RigidBody,
+    pub collider: Collider,
+    pub layer: CollisionLayers,
+    pub axes: LockedAxes,
+    pub damage: Damage,
+    pub name: Name,
 }
 
 impl Default for InfectedBundle {
     fn default() -> Self {
         let square_sprite = Sprite {
-            color: INFECTED_COLOR,
+            color: DEFAULT_INFECTED_COLOR,
             custom_size: Some(Vec2 {
-                x: DEFAULT_MOB_SIZE,
-                y: DEFAULT_MOB_SIZE,
+                x: DEFAULT_INFECTED_SIZE,
+                y: DEFAULT_INFECTED_SIZE,
             }),
             ..default()
         };
 
-        let mut rng = rand::thread_rng();
-        let posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
-        let posy = rng.gen_range(-BOX_SIZE..=BOX_SIZE);
         let dmg_vec: Vec<i32> = Vec::new();
 
         Self {
             infected: Infected,
-            target: Target {
-                target: Vec2 { x: 0., y: 0. },
-            },
             sprite_bundle: SpriteBundle {
                 sprite: square_sprite,
-                transform: Transform::from_translation(Vec3::new(posx, posy, 0.)),
                 ..default()
             },
             layer: CollisionLayers::new(
@@ -66,82 +85,101 @@ impl Default for InfectedBundle {
                     Layer::PersonSensor,
                 ],
             ),
-            stats: default_mob_stats(),
+            stats: default_infected_stats(),
             damage: Damage { instances: dmg_vec },
+            collider: Collider::cuboid(DEFAULT_INFECTED_SIZE, DEFAULT_INFECTED_SIZE),
+            rigid_body: RigidBody::Dynamic,
+            axes: LockedAxes::ROTATION_LOCKED,
+            name: Name::new("Infected"),
         }
     }
 }
 
-#[allow(clippy::type_complexity)]
-pub fn infect(
-    mut commands: Commands,
-    mut is_healthy: Query<&mut InfectionAttemptTimer, With<Healthy>>,
-    is_sensor: Query<&Parent, With<Sensor>>,
-    is_infected: Query<&Infected>,
-    mut events: EventReader<Collision>,
-    time: Res<Time>,
-) {
-    let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
-        let Ok(parent) = is_sensor.get(*entity_a) else {
-            return false;
+impl Default for InfectedRangedBundle {
+    fn default() -> Self {
+        let square_sprite = Sprite {
+            color: DEFAULT_INFECTED_RANGED_COLOR,
+            custom_size: Some(Vec2 {
+                x: DEFAULT_INFECTED_SIZE,
+                y: DEFAULT_INFECTED_SIZE,
+            }),
+            ..default()
         };
 
-        if is_healthy.get(parent.get()).is_err() {
-            return false;
-        }
+        let dmg_vec: Vec<i32> = Vec::new();
 
-        if is_infected.get(*entity_b).is_err() {
-            return false;
-        }
-
-        // get the healthy person's infection timer
-        let Ok(mut timer) = is_healthy.get_mut(parent.get()) else {
-            return false;
-        };
-
-        //attempt to infect once every INFECTION_ATTEMPT_DELAY_MS milliseconds
-        timer.timer.tick(time.delta());
-        if timer.timer.finished() {
-            let mut rng = rand::thread_rng();
-            // 1/INFECTION_ODDS chance to infect
-            if rng.gen_range(0..INFECTION_ODDS) == 0 {
-                commands
-                    .entity(parent.get())
-                    .insert(InfectedBundle::default());
-            }
-            return true;
-        }
-
-        false
-    };
-
-    // if entity is not a healthy person, flip'em.
-    for Collision(contact) in events.iter() {
-        if !collide(&contact.entity1, &contact.entity2) {
-            collide(&contact.entity2, &contact.entity1);
+        Self {
+            infected: Infected,
+            sprite_bundle: SpriteBundle {
+                sprite: square_sprite,
+                ..default()
+            },
+            layer: CollisionLayers::new(
+                [Layer::Infected],
+                [
+                    Layer::Player,
+                    Layer::Projectile,
+                    Layer::Infected,
+                    Layer::PersonSensor,
+                ],
+            ),
+            stats: default_infected_stats(),
+            damage: Damage { instances: dmg_vec },
+            collider: Collider::cuboid(DEFAULT_INFECTED_SIZE, DEFAULT_INFECTED_SIZE),
+            rigid_body: RigidBody::Dynamic,
+            axes: LockedAxes::ROTATION_LOCKED,
+            name: Name::new("Ranged Infected"),
         }
     }
 }
 
-pub fn target_player(
-    player_quary: Query<&Position, With<Player>>,
-    mut infected_querry: Query<&mut Target, With<Infected>>,
-) {
-    let player_position: Vec2 = player_quary.single().0;
+// #[allow(clippy::type_complexity)]
+// pub fn infect(
+//     mut commands: Commands,
+//     mut is_healthy: Query<&mut InfectionAttemptTimer, With<Healthy>>,
+//     is_sensor: Query<&Parent, With<Sensor>>,
+//     is_infected: Query<&Infected>,
+//     mut events: EventReader<Collision>,
+//     time: Res<Time>,
+// ) {
+//     let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
+//         let Ok(parent) = is_sensor.get(*entity_a) else {
+//             return false;
+//         };
 
-    for mut infected_target in infected_querry.iter_mut() {
-        infected_target.target = player_position;
-    }
-}
+//         if is_healthy.get(parent.get()).is_err() {
+//             return false;
+//         }
 
-pub fn move_to_target(
-    mut infected_query: Query<(&mut LinearVelocity, &Position, &Target), With<Infected>>,
-) {
-    for (mut velocity, position, target) in &mut infected_query {
-        // get the vector from the infected to the target and normalise it.
-        let to_player = (target.target - position.0).normalize();
+//         if is_infected.get(*entity_b).is_err() {
+//             return false;
+//         }
 
-        velocity.x = to_player.x * INFECTED_MOVEMENT_SPEED;
-        velocity.y = to_player.y * INFECTED_MOVEMENT_SPEED;
-    }
-}
+//         // get the healthy person's infection timer
+//         let Ok(mut timer) = is_healthy.get_mut(parent.get()) else {
+//             return false;
+//         };
+
+//         //attempt to infect once every INFECTION_ATTEMPT_DELAY_MS milliseconds
+//         timer.timer.tick(time.delta());
+//         if timer.timer.finished() {
+//             let mut rng = rand::thread_rng();
+//             // 1/INFECTION_ODDS chance to infect
+//             if rng.gen_range(0..DEFAULT_INFECTION_ODDS) == 0 {
+//                 commands
+//                     .entity(parent.get())
+//                     .insert(InfectedBundle::default());
+//             }
+//             return true;
+//         }
+
+//         false
+//     };
+
+//     // if entity is not a healthy person, flip'em.
+//     for Collision(contact) in events.iter() {
+//         if !collide(&contact.entity1, &contact.entity2) {
+//             collide(&contact.entity2, &contact.entity1);
+//         }
+//     }
+// }

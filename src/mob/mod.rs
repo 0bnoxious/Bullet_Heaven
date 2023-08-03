@@ -1,21 +1,20 @@
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::*;
-use rand::Rng;
 
 use crate::global::*;
-use crate::map::BOX_SIZE;
 use crate::player::Player;
 use crate::projectile::Damage;
 
-use self::healthy::*;
 use self::infected::*;
 
 pub mod healthy;
 pub mod infected;
 pub mod spawner;
 
-pub const DEFAULT_MOB_SIZE: f32 = 10.;
+#[derive(Component)]
+pub struct Mob;
+
+/*pub const DEFAULT_MOB_SIZE: f32 = 10.;
 pub const DEFAULT_MOB_HP: i32 = 1;
 pub const DEFAULT_MOB_DEFENSE: i32 = 0;
 pub const DEFAULT_MOB_DAMAGE: i32 = 0;
@@ -31,14 +30,14 @@ fn default_mob_stats() -> Stats {
         defense: DEFAULT_MOB_DEFENSE,
         damage: DEFAULT_MOB_DAMAGE,
     }
-}
+}*/
 
-#[derive(Resource)]
+/*#[derive(Resource)]
 pub struct RandomDirectionTimer {
     pub timer: Timer,
-}
+}*/
 
-#[derive(Bundle)]
+/*#[derive(Bundle)]
 pub struct MobBundle {
     sprite_bundle: SpriteBundle,
     rigid_body: RigidBody,
@@ -75,7 +74,7 @@ impl Default for MobBundle {
             damage: Damage { instances: dmg_vec },
         }
     }
-}
+}*/
 
 // #[allow(clippy::type_complexity)]
 // pub fn confuse_mobs(

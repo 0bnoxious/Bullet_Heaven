@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
-use crate::projectile::Damage;
+use crate::{mob::infected::DEFAULT_INFECTED_HP, projectile::Damage};
 
 #[derive(Component, Debug)]
 pub struct Stats {
@@ -80,11 +80,6 @@ pub fn random_velocity(rng: &mut ThreadRng) -> Vec3 {
 
 #[derive(Component)]
 pub struct Dead;
-
-#[derive(Component, Copy, Clone)]
-pub struct Target {
-    pub position: Position,
-}
 
 pub fn apply_damage(
     mut commands: Commands,

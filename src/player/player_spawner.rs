@@ -4,10 +4,10 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use leafwing_input_manager::prelude::*;
 
+use crate::global::AimType;
 use crate::global::*;
 use crate::weapon::shotgun::Shotgun;
 use crate::weapon::{default_weapon, Weapon};
-use crate::{global::AimType, weapon::ClosestTarget};
 
 use super::{player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE};
 
@@ -47,9 +47,6 @@ pub fn spawn_player(mut commands: Commands) {
         CollisionLayers::new([Layer::Player], [Layer::Person]),
         AttackTimer {
             timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
-        },
-        Target {
-            position: Position(Vec2 { x: 0., y: 0. }),
         },
         Shotgun { ..default() },
     ));

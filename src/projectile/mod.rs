@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{global::*, mob::infected::Infected, player::Player, weapon::ClosestTarget};
+use crate::{
+    global::*,
+    mob::infected::Infected,
+    player::Player,
+    targeting::{ClosestTarget, HasTarget},
+};
 
 pub mod projectile_spawner;
 
@@ -35,7 +40,12 @@ pub enum ProjectileType {
 #[allow(clippy::type_complexity)]
 pub fn move_projectile(
     mut projectile_query: Query<
-        (&Position, &mut LinearVelocity, &mut Rotation, &mut Target),
+        (
+            &Position,
+            &mut LinearVelocity,
+            &mut Rotation,
+            &mut HasTarget,
+        ),
         With<Projectile>,
     >,
     player_query: Query<&Position, With<Player>>,
@@ -75,7 +85,7 @@ pub fn move_projectile(
 
                     // Cast Projectile target position as Vec3 for quat rotation
                     let closest = closest_target.infected();
-                    let closest_vec3 = Vec3::new(closest.position.x, closest.position.y, 0.);
+                    let closest_vec3 = Vec3::new(closest.x, closest.y, 0.);
 
                     // get the vector from the projectile to the closest infected.
                     let to_closest = (closest_vec3 - player_position).normalize();
@@ -99,7 +109,7 @@ pub fn move_projectile(
             {
                 // Cast Projectile target position as Vec3 for quat rotation
                 let closest = closest_target.infected();
-                let projectile_target_vec3 = Vec3::new(closest.position.x, closest.position.y, 0.);
+                let projectile_target_vec3 = Vec3::new(closest.x, closest.y, 0.);
 
                 // get the vector from the projectile to the closest infected and normalise it.
                 let to_closest = (projectile_target_vec3

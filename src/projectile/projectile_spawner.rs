@@ -4,7 +4,7 @@ use bevy::{ecs::system::SystemParam, prelude::*};
 use bevy_xpbd_2d::prelude::*;
 
 use super::{Projectile, ProjectileTimer, PROJECTILE_LIFE_SPAN, PROJECTILE_SIZE};
-use crate::global::*;
+use crate::{global::*, targeting::HasTarget};
 
 #[derive(SystemParam)]
 pub struct ProjectileSpawner<'w, 's> {
@@ -12,7 +12,7 @@ pub struct ProjectileSpawner<'w, 's> {
 }
 
 impl<'w, 's> ProjectileSpawner<'w, 's> {
-    pub fn spawn_projectile(&mut self, origin: Position, target: Target) {
+    pub fn spawn_projectile(&mut self, origin: Vec2, direction: Vec2) {
         self.commands.spawn((
             Projectile,
             SpriteBundle {
@@ -32,22 +32,19 @@ impl<'w, 's> ProjectileSpawner<'w, 's> {
                 ..default()
             },
             RigidBody::Dynamic,
+            Position(origin),
+            HasTarget {
+                target_position: direction,
+            },
             Collider::cuboid(PROJECTILE_SIZE * 2., PROJECTILE_SIZE * 2.),
             CollisionLayers::new([Layer::Projectile], [Layer::Infected]),
-            origin,
-            target,
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
         ));
     }
 
-    pub fn spawn_shotgun_projectile(&mut self, origin: Position, target: Target) {
-        println!(
-            "bullet spread : ({},{})",
-            target.position.x, target.position.y
-        );
-
+    pub fn spawn_shotgun_projectile(&mut self, origin: Vec2, direction: Vec2) {
         self.commands.spawn((
             Projectile,
             SpriteBundle {
@@ -67,14 +64,16 @@ impl<'w, 's> ProjectileSpawner<'w, 's> {
                 ..default()
             },
             RigidBody::Dynamic,
+            Position(origin),
+            HasTarget {
+                target_position: direction,
+            },
             Collider::cuboid(PROJECTILE_SIZE * 2., PROJECTILE_SIZE * 2.),
             CollisionLayers::new([Layer::Projectile], [Layer::Infected]),
-            origin,
-            target,
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
-            LinearVelocity(target.position.0),
+            //LinearVelocity(target),
         ));
     }
 }

@@ -2,8 +2,10 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
-    global::*, mob::infected::Infected, projectile::projectile_spawner::ProjectileSpawner,
-    weapon::ClosestTarget,
+    global::*,
+    mob::infected::Infected,
+    projectile::projectile_spawner::ProjectileSpawner,
+    targeting::{HasTarget, Target},
 };
 
 use self::player_input::{PlayerAimSwap, PlayerWalk};
@@ -31,15 +33,17 @@ pub fn player_attack(
     mut attack_timer_query: Query<&mut AttackTimer>,
     infected_query: Query<(), With<Infected>>,
     player_pos_query: Query<&Position, With<Player>>,
-    player_target_query: Query<&Target, With<Player>>,
+    player_target_query: Query<&HasTarget, With<Player>>,
     mut projectile_spawner: ProjectileSpawner,
 ) {
     if infected_query.iter().count() > 0 {
         let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
         attack_timer.timer.tick(time.delta());
         if attack_timer.timer.finished() {
-            projectile_spawner
-                .spawn_projectile(*player_pos_query.single(), *player_target_query.single());
+            for player_target in player_target_query.iter() {
+                projectile_spawner
+                    .spawn_projectile(player_pos_query.single().0, player_target.target_position);
+            }
         }
     }
 }
@@ -67,10 +71,10 @@ pub fn swap_player_aim(
     }
 }
 
-pub fn update_player_target(
+/*pub fn update_player_target(
     player_target_query: Query<&mut Target, With<Player>>,
     mut target: ClosestTarget,
 ) {
     let mut target_position = player_target_query.single().position;
     target_position = target.infected().position;
-}
+}*/

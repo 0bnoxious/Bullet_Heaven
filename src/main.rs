@@ -4,6 +4,7 @@ pub mod map;
 pub mod mob;
 pub mod player;
 pub mod projectile;
+pub mod targeting;
 pub mod weapon;
 
 //debug
@@ -20,15 +21,13 @@ use leafwing_input_manager::prelude::*;
 use map::define_space;
 use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
-use mob::{infected::*, RandomDirectionTimer};
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
-use player::{
-    move_player, player_attack, player_spawner::*, swap_player_aim, update_player_target,
-};
+use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
 use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
 use std::time::Duration;
+use targeting::{player_targeting, target_player};
 use weapon::shotgun::fire_shotgun;
 
 fn main() {
@@ -60,20 +59,14 @@ fn main() {
         ))
         .add_systems(
             Startup,
-            (
-                setup,
-                spawn_player,
-                define_space,
-                spawn_waves_manager,
-                //spawn_shotgun,
-            ),
+            (setup, spawn_player, define_space, spawn_waves_manager),
         )
         .add_systems(
             Update,
             (
                 //move_projectile,
                 //player_attack,
-                update_player_target,
+                //update_player_target,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
@@ -84,6 +77,7 @@ fn main() {
                 move_player,
                 swap_player_aim,
                 fire_shotgun,
+                player_targeting,
                 //debug
                 //draw_collider,
                 //draw_antispawn_zone,
@@ -106,9 +100,9 @@ struct ResolutionSettings {
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(RandomDirectionTimer {
+    /*commands.insert_resource(RandomDirectionTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
-    });
+    });*/
     commands.insert_resource(SpawnTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });

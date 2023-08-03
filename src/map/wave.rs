@@ -25,7 +25,7 @@ pub struct Wave {
     //wave_number: i32,
     max_mob_count: u64,
     mobs_types: Vec<MobType>,
-    kill_count: i32,
+    //kill_count: i32,
 }
 
 pub fn spawn_waves_manager(mut commands: Commands) {
@@ -87,7 +87,7 @@ pub fn build_waves() -> Vec<Wave> {
         let wave = Wave {
             max_mob_count: MAX_WAVE_MOB_COUNT,
             mobs_types: mob_types,
-            kill_count: 0,
+            //kill_count: 0,
         };
         waves.push(wave);
         wave_num += 1;

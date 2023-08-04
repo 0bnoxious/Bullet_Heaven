@@ -12,7 +12,7 @@ pub struct ProjectileSpawner<'w, 's> {
 }
 
 impl<'w, 's> ProjectileSpawner<'w, 's> {
-    pub fn spawn_projectile(&mut self, origin: Vec2, direction: Vec2) {
+    pub fn spawn_projectile(&mut self, origin: Vec2, direction: Vec2, aim_type: AimType) {
         self.commands.spawn((
             Projectile,
             SpriteBundle {
@@ -41,10 +41,11 @@ impl<'w, 's> ProjectileSpawner<'w, 's> {
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
+            aim_type,
         ));
     }
 
-    pub fn spawn_shotgun_projectile(&mut self, origin: Vec2, direction: Vec2) {
+    pub fn spawn_shotgun_projectile(&mut self, origin: Vec2, direction: Vec2, aim_type: AimType) {
         self.commands.spawn((
             Projectile,
             SpriteBundle {
@@ -73,7 +74,8 @@ impl<'w, 's> ProjectileSpawner<'w, 's> {
             ProjectileTimer {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
-            //LinearVelocity(target),
+            aim_type,
+            Name::new("Shotgun bullet"),
         ));
     }
 }

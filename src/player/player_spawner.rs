@@ -7,7 +7,6 @@ use leafwing_input_manager::prelude::*;
 use crate::global::AimType;
 use crate::global::*;
 use crate::weapon::shotgun::Shotgun;
-use crate::weapon::{default_weapon, Weapon};
 
 use super::{player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE};
 
@@ -49,5 +48,6 @@ pub fn spawn_player(mut commands: Commands) {
             timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
         },
         Shotgun { ..default() },
+        Name::new("Player"),
     ));
 }

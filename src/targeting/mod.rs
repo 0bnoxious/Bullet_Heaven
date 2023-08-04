@@ -1,5 +1,6 @@
 use bevy::{ecs::system::SystemParam, prelude::*};
 use bevy_xpbd_2d::prelude::*;
+use rand::Rng;
 
 use crate::{
     mob::{
@@ -12,37 +13,44 @@ use crate::{
 #[derive(Component)]
 pub struct Target;
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub struct HasTarget {
     pub target_position: Vec2,
 }
 
 //commence par infected gros bs
-pub fn add_unit_target(
+/*pub fn add_unit_target(
     commands: Commands,
     can_target_query: Query<Entity, (With<Target>, With<Mob>)>,
     has_target_query: Query<Entity, Without<HasTarget>>,
 ) {
-}
+}*/
 
 pub fn player_targeting(
     mut commands: Commands,
     infected_as_target_querry: Query<&Target, With<Infected>>,
-    test_querry: Query<&Infected>,
     mut has_target_query: Query<Entity, (With<Player>, Without<HasTarget>)>,
+    mut target_pos_query: Query<&mut HasTarget, With<Player>>,
     mut closest: ClosestTarget,
 ) {
-    let targetcount = infected_as_target_querry.iter().count();
-    println!("target count : {targetcount}");
+    // do not assign target when there are no enemies
     if !infected_as_target_querry.is_empty() {
-        for player_entity_without_target in &mut has_target_query {
-            let closest = closest.infected();
-            println!("assigning {closest:?} as player target!");
-            commands
-                .entity(player_entity_without_target)
-                .insert(HasTarget {
-                    target_position: closest,
-                });
+        // when the player have no target
+        if target_pos_query.is_empty() {
+            for player_entity_without_target in &mut has_target_query {
+                let closest = closest.infected();
+                //println!("assigning {closest:?} as player target!");
+                commands
+                    .entity(player_entity_without_target)
+                    .insert(HasTarget {
+                        target_position: closest,
+                    });
+            }
+        } else {
+            for mut target in &mut target_pos_query {
+                target.target_position = closest.infected();
+                //println!("updating {} as player target!", target.target_position);
+            }
         }
     }
 }
@@ -97,4 +105,28 @@ impl<'w, 's> ClosestTarget<'w, 's> {
         }
         closest_pos
     }
+}
+
+pub fn define_spread(origin: Vec2, direction: Vec2, spread: f32) -> Vec2 {
+    if spread <= 0. {
+        return direction;
+    }
+    let mut rng = rand::thread_rng();
+
+    //determine deviation from target using a bell curve type distribution
+    let deviation = rng.gen_range(0.0..spread) + rng.gen_range(0.0..spread) - spread;
+
+    //rotate the target vector by the deviation
+    //let (y, x) = (deviation + std::f32::consts::PI / 2.0).sin_cos();
+    let skoica = Vec2::from_angle(deviation.to_radians())
+        .rotate(direction - origin)
+        .normalize();
+    print!("skoica: {skoica:?}");
+    skoica
+
+    //let deviation_as_vec = Vec2::new(x as f32, y as f32).normalize();
+    //(direction - origin).normalize() + deviation_as_vec
+
+    //rotate the target vector by the deviation
+    //let (y, x) = (deviation + std::f32::consts::PI / 2.0).sin_cos();
 }

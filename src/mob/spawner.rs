@@ -6,7 +6,7 @@ use crate::{map::BOX_SIZE, player::PLAYER_ANTI_MOB_SPAWN_SIZE, targeting::Target
 
 use super::*;
 
-pub const MAX_MOB_COUNT: i32 = 500;
+pub const MAX_MOB_COUNT: i32 = 10;
 pub const INFECTED_RATIO: i32 = 1;
 pub const HEALTHY_RATIO: i32 = 1;
 pub const INFECTED_COUNT: i32 = (MAX_MOB_COUNT / (INFECTED_RATIO + HEALTHY_RATIO)) * INFECTED_RATIO;
@@ -45,6 +45,7 @@ impl<'w, 's> MobSpawner<'w, 's> {
 
                     self.commands.spawn((
                         Mob,
+                        Target,
                         InfectedRangedBundle { ..default() },
                         Position(mob_pos),
                     ));

@@ -16,6 +16,7 @@ use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
+use debug::{draw_player_target_line, draw_weapon_spread_lines};
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -24,8 +25,10 @@ use mob::spawner::SpawnTimer;
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
-use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
-use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
+use player::{move_player, player_spawner::*, swap_player_aim};
+use projectile::{
+    handle_projectile_collision, move_projectile, move_shotgun_projectile, projectile_spawner::*,
+};
 use std::time::Duration;
 use targeting::{player_targeting, target_player};
 use weapon::shotgun::fire_shotgun;
@@ -65,8 +68,6 @@ fn main() {
             Update,
             (
                 //move_projectile,
-                //player_attack,
-                //update_player_target,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
@@ -78,9 +79,12 @@ fn main() {
                 swap_player_aim,
                 fire_shotgun,
                 player_targeting,
+                move_shotgun_projectile,
                 //debug
                 //draw_collider,
                 //draw_antispawn_zone,
+                //draw_player_target_line,
+                draw_weapon_spread_lines,
             ),
         )
         .add_systems(Update, player_walks)

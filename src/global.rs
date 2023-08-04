@@ -31,7 +31,7 @@ impl Default for Stats {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub enum AimType {
     Random,
     Closest,

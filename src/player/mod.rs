@@ -15,7 +15,7 @@ pub mod player_spawner;
 
 pub const PLAYER_SIZE: f32 = 10.;
 pub const PLAYER_HHIT_POINTS: f32 = 100.;
-pub const ATTACK_SPEED: u64 = 10;
+pub const ATTACK_SPEED: u64 = 1000;
 pub const PLAYER_SPEED: f32 = 3.;
 pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
 pub const PLAYER_INVULNERABILITY: f64 = 1.;
@@ -28,7 +28,7 @@ pub struct AttackTimer {
     pub timer: Timer,
 }
 
-pub fn player_attack(
+/*pub fn player_attack(
     time: Res<Time>,
     mut attack_timer_query: Query<&mut AttackTimer>,
     infected_query: Query<(), With<Infected>>,
@@ -46,7 +46,7 @@ pub fn player_attack(
             }
         }
     }
-}
+}*/
 
 pub fn move_player(
     mut events: EventReader<PlayerWalk>,

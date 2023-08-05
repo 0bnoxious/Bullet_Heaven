@@ -8,7 +8,9 @@ use crate::global::AimType;
 use crate::global::*;
 use crate::weapon::shotgun::Shotgun;
 
-use super::{player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE};
+use super::{
+    player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_AIM_TYPE, PLAYER_SIZE,
+};
 
 // must be added to the player entity
 #[derive(Bundle)]
@@ -26,7 +28,7 @@ pub fn spawn_player(mut commands: Commands) {
                 input_map: PlayerBundle::player_input_map(),
                 ..default()
             },
-            aim_type: AimType::Closest,
+            aim_type: PLAYER_AIM_TYPE,
         },
         SpriteBundle {
             sprite: Sprite {

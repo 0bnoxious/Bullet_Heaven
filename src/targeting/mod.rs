@@ -8,6 +8,7 @@ use crate::{
         Mob,
     },
     player::Player,
+    projectile::Projectile,
 };
 
 #[derive(Component)]
@@ -18,19 +19,11 @@ pub struct HasTarget {
     pub target_position: Vec2,
 }
 
-//commence par infected gros bs
-/*pub fn add_unit_target(
-    commands: Commands,
-    can_target_query: Query<Entity, (With<Target>, With<Mob>)>,
-    has_target_query: Query<Entity, Without<HasTarget>>,
-) {
-}*/
-
 pub fn player_targeting(
     mut commands: Commands,
     infected_as_target_querry: Query<&Target, With<Infected>>,
     mut has_target_query: Query<Entity, (With<Player>, Without<HasTarget>)>,
-    mut target_pos_query: Query<&mut HasTarget, With<Player>>,
+    mut target_pos_query: Query<&mut HasTarget, (With<Player>, Without<Projectile>)>,
     mut closest: ClosestTarget,
 ) {
     // do not assign target when there are no enemies
@@ -39,7 +32,6 @@ pub fn player_targeting(
         if target_pos_query.is_empty() {
             for player_entity_without_target in &mut has_target_query {
                 let closest = closest.infected();
-                //println!("assigning {closest:?} as player target!");
                 commands
                     .entity(player_entity_without_target)
                     .insert(HasTarget {
@@ -49,7 +41,6 @@ pub fn player_targeting(
         } else {
             for mut target in &mut target_pos_query {
                 target.target_position = closest.infected();
-                //println!("updating {} as player target!", target.target_position);
             }
         }
     }
@@ -86,27 +77,42 @@ pub fn target_player(
 
 #[derive(SystemParam)]
 pub struct ClosestTarget<'w, 's> {
-    infected_query: Query<'w, 's, &'static Position, (With<Infected>, Without<Player>)>,
+    infected_query:
+        Query<'w, 's, &'static Position, (With<Infected>, Without<Player>, Without<Projectile>)>,
     player_query: Query<'w, 's, &'static Position, (With<Player>, Without<Infected>)>,
 }
 
 impl<'w, 's> ClosestTarget<'w, 's> {
     pub fn infected(&mut self) -> Vec2 {
-        let player_position = self.player_query.single();
         let mut closest_dist = f32::MAX;
         let mut closest_pos = Vec2::ZERO;
-
-        for infected_pos in self.infected_query.iter() {
-            let distance = Vec2::distance(player_position.0, infected_pos.0);
-            if distance < closest_dist {
-                closest_dist = distance;
-                closest_pos = infected_pos.0;
+        for player_position in &mut self.player_query {
+            for infected_pos in self.infected_query.iter() {
+                let distance = Vec2::distance(player_position.0, infected_pos.0);
+                if distance < closest_dist {
+                    closest_dist = distance;
+                    closest_pos = infected_pos.0;
+                }
             }
         }
         closest_pos
     }
 }
 
+// faudrait checker les maths qui sont fait icite pass spo claire...
+//
+// j'ai pas trouvé de fonction pour rotate autour d'un point spécifié MAIS
+// from_angle + rotate crée un vecteur à (-1,0) et rotate un point autour de (-1,0)
+//
+// voici ce que "JE PENSE" que j'ai fait =/
+//
+// #1 - change manuellement le point (-1,0) pour celui de la position du player
+//
+// #2 - applique un rotation de degré random
+//
+// #3 le vecteur que ca donne après la rotation j'ai 0 idée c'est quoi, mais quand
+// on multiplie par la distance et qu'on normalise, le point va être alignée comme
+// voulu dans le range du spread
 pub fn define_spread(origin: Vec2, direction: Vec2, spread: f32) -> Vec2 {
     if spread <= 0. {
         return direction;
@@ -117,16 +123,9 @@ pub fn define_spread(origin: Vec2, direction: Vec2, spread: f32) -> Vec2 {
     let deviation = rng.gen_range(0.0..spread) + rng.gen_range(0.0..spread) - spread;
 
     //rotate the target vector by the deviation
-    //let (y, x) = (deviation + std::f32::consts::PI / 2.0).sin_cos();
-    let skoica = Vec2::from_angle(deviation.to_radians())
-        .rotate(direction - origin)
-        .normalize();
-    print!("skoica: {skoica:?}");
-    skoica
+    //                                                  #2                            #1
+    let deviated_direction = Vec2::from_angle(deviation.to_radians()).rotate(direction - origin);
 
-    //let deviation_as_vec = Vec2::new(x as f32, y as f32).normalize();
-    //(direction - origin).normalize() + deviation_as_vec
-
-    //rotate the target vector by the deviation
-    //let (y, x) = (deviation + std::f32::consts::PI / 2.0).sin_cos();
+    //                                 #3
+    (deviated_direction * Vec2::distance(origin, direction)).normalize()
 }

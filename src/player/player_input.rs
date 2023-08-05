@@ -9,12 +9,10 @@ use super::Player;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
-    // Movement
     Up,
     Down,
     Left,
     Right,
-    // Abilities
     Ability1,
     Ability2,
     Ability3,

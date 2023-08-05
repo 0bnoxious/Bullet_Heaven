@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
-use crate::{mob::infected::DEFAULT_INFECTED_HP, projectile::Damage};
+use crate::projectile::Damage;
 
 #[derive(Component, Debug)]
 pub struct Stats {

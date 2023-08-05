@@ -26,11 +26,9 @@ use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
 use player::{move_player, player_spawner::*, swap_player_aim};
-use projectile::{
-    handle_projectile_collision, move_projectile, move_shotgun_projectile, projectile_spawner::*,
-};
+use projectile::{handle_projectile_collision, move_shotgun_projectile, projectile_spawner::*};
 use std::time::Duration;
-use targeting::{player_targeting, target_player};
+use targeting::{move_unit_to_target, player_targeting, target_player};
 use weapon::shotgun::fire_shotgun;
 
 fn main() {
@@ -40,7 +38,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
-        .insert_resource(SubstepCount(6))
+        .insert_resource(SubstepCount(2))
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -71,7 +69,7 @@ fn main() {
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
-                //move_to_target,
+                move_unit_to_target,
                 toggle_resolution,
                 apply_damage,
                 manage_waves,
@@ -84,7 +82,7 @@ fn main() {
                 //draw_collider,
                 //draw_antispawn_zone,
                 //draw_player_target_line,
-                draw_weapon_spread_lines,
+                //draw_weapon_spread_lines,
             ),
         )
         .add_systems(Update, player_walks)
@@ -104,9 +102,6 @@ struct ResolutionSettings {
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    /*commands.insert_resource(RandomDirectionTimer {
-        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
-    });*/
     commands.insert_resource(SpawnTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });

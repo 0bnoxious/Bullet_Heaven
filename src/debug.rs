@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::{
-    math::PI,
     parry::shape::TypedShape,
     prelude::Position,
     prelude::{Collider, Sensor},
@@ -9,7 +8,7 @@ use bevy_xpbd_2d::{
 use crate::{
     player::{Player, PLAYER_ANTI_MOB_SPAWN_SIZE},
     projectile::Projectile,
-    targeting::{define_spread, HasTarget, Target},
+    targeting::{define_spread, HasTarget},
     weapon::shotgun::Shotgun,
 };
 
@@ -50,28 +49,38 @@ pub fn draw_player_target_line(
     mut gizmos: Gizmos,
     mut q: Query<(&HasTarget, &Position), With<Player>>,
 ) {
-    for (t, mut p) in &mut q {
+    for (t, p) in &mut q {
         gizmos.line_2d(p.0, t.target_position, Color::ORANGE_RED);
     }
 }
 
 pub fn draw_weapon_spread_lines(
     mut gizmos: Gizmos,
-    mut q: Query<(&HasTarget, &Position, &Shotgun), With<Player>>,
+    mut query: Query<(&HasTarget, &Position, &Shotgun), (With<Player>, Without<Projectile>)>,
 ) {
-    for (t, p, gun) in &mut q {
-        let distance_to_target = Vec2::distance(t.target_position, p.0);
+    for (player_has_target, player_position, gun) in &mut query {
+        let distance_to_target =
+            Vec2::distance(player_position.0, player_has_target.target_position);
 
-        let left = Vec2::from_angle((gun.spread).to_radians()).rotate(t.target_position - p.0);
-        let right = Vec2::from_angle(-(gun.spread).to_radians()).rotate(t.target_position - p.0);
+        let left = Vec2::from_angle((gun.spread).to_radians())
+            .rotate(player_has_target.target_position - player_position.0);
+        let right = Vec2::from_angle(-(gun.spread).to_radians())
+            .rotate(player_has_target.target_position - player_position.0);
 
-        let spread = define_spread(p.0, t.target_position - p.0, gun.spread);
-        println!("distance? : {distance_to_target:?}      left : {left:?}");
+        let spread = define_spread(
+            player_position.0,
+            player_has_target.target_position,
+            gun.spread,
+        );
 
-        gizmos.line_2d(p.0, spread * distance_to_target, Color::PURPLE);
+        gizmos.line_2d(player_position.0, spread, Color::FUCHSIA);
 
-        gizmos.line_2d(p.0, t.target_position, Color::ORANGE_RED);
-        gizmos.line_2d(p.0, left * distance_to_target, Color::WHITE);
-        gizmos.line_2d(p.0, right * distance_to_target, Color::WHITE);
+        gizmos.line_2d(
+            player_position.0,
+            player_has_target.target_position,
+            Color::ORANGE_RED,
+        );
+        gizmos.line_2d(player_position.0, left * distance_to_target, Color::WHITE);
+        gizmos.line_2d(player_position.0, right * distance_to_target, Color::WHITE);
     }
 }

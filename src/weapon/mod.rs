@@ -10,12 +10,6 @@ pub const DEFAULT_WEAPON_AIM_TYPE: AimType = AimType::Closest;
 
 pub mod shotgun;
 
-/*#[derive(Component, Debug, Clone, Copy)]
-pub enum WeaponType {
-    Pistol,
-    Shotgun,
-}*/
-
 #[derive(Component)]
 pub struct Weapon {
     pub aim_type: AimType,

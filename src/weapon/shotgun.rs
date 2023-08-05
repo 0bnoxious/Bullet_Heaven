@@ -9,7 +9,7 @@ use crate::{
     targeting::{define_spread, HasTarget},
 };
 
-pub const DEFAULT_SHOTGUN_BULLET_COUNT: i32 = 20;
+pub const DEFAULT_SHOTGUN_BULLET_COUNT: i32 = 12;
 pub const DEFAULT_SHOTGUN_SPREAD: f32 = 15.;
 pub const DEFAULT_SHOTGUN_DAMAGE: f64 = 1.;
 pub const DEFAULT_SHOTGUN_FIRE_RATE: f64 = 1000.;
@@ -54,8 +54,7 @@ pub fn fire_shotgun(
                         player_position.0,
                         player_has_target.target_position,
                         shotgun.spread,
-                    )
-                    .normalize();
+                    );
                     projectile_spawner.spawn_shotgun_projectile(
                         player_position.0,
                         spread,

@@ -4,15 +4,15 @@ use bevy_xpbd_2d::prelude::*;
 use crate::{
     global::AimType,
     mob::infected::Infected,
-    player::{AttackTimer, Player},
+    player::{AttackTimer, Player, DEFAULT_PLAYER_ATTACK_SPEED},
     projectile::{projectile_spawner::ProjectileSpawner, Projectile},
     targeting::{define_spread, HasTarget},
 };
 
-pub const DEFAULT_SHOTGUN_BULLET_COUNT: i32 = 12;
+pub const DEFAULT_SHOTGUN_BULLET_COUNT: i32 = 8;
 pub const DEFAULT_SHOTGUN_SPREAD: f32 = 15.;
 pub const DEFAULT_SHOTGUN_DAMAGE: f64 = 1.;
-pub const DEFAULT_SHOTGUN_FIRE_RATE: f64 = 1000.;
+pub const DEFAULT_SHOTGUN_FIRE_RATE: f64 = 1.;
 pub const DEFAULT_SHOTGUN_RANGE: f64 = 100.;
 
 #[derive(Component)]
@@ -31,7 +31,7 @@ impl Default for Shotgun {
             spread: DEFAULT_SHOTGUN_SPREAD,
             range: DEFAULT_SHOTGUN_RANGE,
             damage: DEFAULT_SHOTGUN_DAMAGE,
-            fire_rate: DEFAULT_SHOTGUN_FIRE_RATE,
+            fire_rate: DEFAULT_SHOTGUN_FIRE_RATE * DEFAULT_PLAYER_ATTACK_SPEED as f64,
         }
     }
 }

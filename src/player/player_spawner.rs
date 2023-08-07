@@ -6,10 +6,10 @@ use leafwing_input_manager::prelude::*;
 
 use crate::global::AimType;
 use crate::global::*;
-use crate::weapon::shotgun::Shotgun;
 
 use super::{
-    player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_AIM_TYPE, PLAYER_SIZE,
+    player_input::PlayerAction, AttackTimer, Player, DEFAULT_PLAYER_AIM_TYPE,
+    DEFAULT_PLAYER_ATTACK_SPEED, DEFAULT_PLAYER_SIZE,
 };
 
 // must be added to the player entity
@@ -28,28 +28,31 @@ pub fn spawn_player(mut commands: Commands) {
                 input_map: PlayerBundle::player_input_map(),
                 ..default()
             },
-            aim_type: PLAYER_AIM_TYPE,
+            aim_type: DEFAULT_PLAYER_AIM_TYPE,
         },
         SpriteBundle {
             sprite: Sprite {
                 color: Color::BLUE,
                 custom_size: (Some(Vec2 {
-                    x: PLAYER_SIZE,
-                    y: PLAYER_SIZE,
+                    x: DEFAULT_PLAYER_SIZE,
+                    y: DEFAULT_PLAYER_SIZE,
                 })),
                 ..default()
             },
             transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
             ..default()
         },
+        Stats::default(),
         RigidBody::Kinematic,
         Position(Vec2::new(0., 0.)),
-        Collider::cuboid(PLAYER_SIZE, PLAYER_SIZE),
+        Collider::cuboid(DEFAULT_PLAYER_SIZE, DEFAULT_PLAYER_SIZE),
         CollisionLayers::new([Layer::Player], [Layer::Person]),
         AttackTimer {
-            timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
+            timer: Timer::new(
+                Duration::from_millis(DEFAULT_PLAYER_ATTACK_SPEED as u64),
+                TimerMode::Repeating,
+            ),
         },
-        //Shotgun { ..default() },
         Name::new("Player"),
     ));
 }

@@ -1,20 +1,23 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::Position;
 
-use crate::global::*;
+use crate::{global::*, mob::Mob};
 
 use self::player_input::{PlayerAimSwap, PlayerWalk};
 
 pub mod player_input;
 pub mod player_spawner;
 
-pub const PLAYER_SIZE: f32 = 10.;
-pub const PLAYER_HIT_POINTS: f32 = 100.;
-pub const ATTACK_SPEED: u64 = 10;
-pub const PLAYER_SPEED: f32 = 3.;
-pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
-pub const PLAYER_INVULNERABILITY: f64 = 1.;
-pub const PLAYER_AIM_TYPE: AimType = AimType::Closest;
+pub const DEFAULT_PLAYER_SIZE: f32 = 10.;
+pub const DEFAULT_PLAYER_HIT_POINTS: i32 = 100;
+pub const DEFAULT_PLAYER_DEFENSE: i32 = 1;
+pub const DEFAULT_PLAYER_ATTACK_SPEED: f32 = 1000.;
+pub const DEFAULT_PLAYER_MOVEMENT_SPEED: f32 = 3.;
+pub const DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
+pub const DEFAULT_PLAYER_INVULNERABILITY: f64 = 1.;
+pub const DEFAULT_PLAYER_AIM_TYPE: AimType = AimType::Closest;
 
 #[derive(Component)]
 pub struct Player;
@@ -24,6 +27,16 @@ pub struct AttackTimer {
     pub timer: Timer,
 }
 
+pub fn default_player_stats() -> Stats {
+    Stats {
+        hit_points: DEFAULT_PLAYER_HIT_POINTS,
+        movement_speed: DEFAULT_PLAYER_MOVEMENT_SPEED,
+        attack_speed: DEFAULT_PLAYER_ATTACK_SPEED,
+        defense: DEFAULT_PLAYER_DEFENSE,
+        damage: 1,
+    }
+}
+
 pub fn move_player(
     mut events: EventReader<PlayerWalk>,
     mut query: Query<&mut Position, With<Player>>,
@@ -31,7 +44,7 @@ pub fn move_player(
     for player_walk_event in events.iter() {
         let mut player_position = query.single_mut();
         let direction_vec2: Vec2 = player_walk_event.direction.into();
-        player_position.0 += direction_vec2 * PLAYER_SPEED;
+        player_position.0 += direction_vec2 * DEFAULT_PLAYER_MOVEMENT_SPEED;
     }
 }
 
@@ -47,30 +60,36 @@ pub fn swap_player_aim(
     }
 }
 
-/*pub fn player_attack(
-    time: Res<Time>,
-    mut attack_timer_query: Query<&mut AttackTimer>,
-    infected_query: Query<(), With<Infected>>,
-    player_pos_query: Query<&Position, With<Player>>,
-    player_target_query: Query<&HasTarget, With<Player>>,
-    mut projectile_spawner: ProjectileSpawner,
+#[derive(Event)]
+pub struct PlayerAttackSpeedChange {}
+
+pub fn update_player_attack_timer(
+    mut commands: Commands,
+    mut player_attack_speed_change_events: EventReader<PlayerAttackSpeedChange>,
+    attack_speed_query: Query<&mut Stats, (With<Player>, Without<Mob>)>,
+    mut timer_query: Query<Entity, (With<AttackTimer>, With<Player>)>,
 ) {
-    if infected_query.iter().count() > 0 {
-        let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
-        attack_timer.timer.tick(time.delta());
-        if attack_timer.timer.finished() {
-            for player_target in player_target_query.iter() {
-                projectile_spawner
-                    .spawn_projectile(player_pos_query.single().0, player_target.target_position);
+    for _ in player_attack_speed_change_events.iter() {
+        for entity in &mut timer_query {
+            println!(
+                "this many player stats : {}",
+                attack_speed_query.iter().count()
+            );
+            for player_stats in attack_speed_query.iter() {
+                println!("player with timer!");
+                let updated_attack_timer = AttackTimer {
+                    timer: Timer::new(
+                        Duration::from_millis(player_stats.attack_speed as u64),
+                        TimerMode::Repeating,
+                    ),
+                };
+                println!(
+                    "adding timer with attack speed of {}",
+                    updated_attack_timer.timer.duration().as_millis()
+                );
+                commands.entity(entity).remove::<AttackTimer>();
+                commands.entity(entity).insert(updated_attack_timer);
             }
         }
     }
-}*/
-
-/*pub fn update_player_target(
-    player_target_query: Query<&mut Target, With<Player>>,
-    mut target: ClosestTarget,
-) {
-    let mut target_position = player_target_query.single().position;
-    target_position = target.infected().position;
-}*/
+}

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use rand::Rng;
 
-use crate::{map::BOX_SIZE, player::PLAYER_ANTI_MOB_SPAWN_SIZE, targeting::Target};
+use crate::{map::BOX_SIZE, player::DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE, targeting::Target};
 
 use super::*;
 
@@ -75,7 +75,7 @@ pub fn safe_spawn_location(player_pos: &Position) -> Vec2 {
             x: player_pos.x,
             y: player_pos.y,
         },
-    ) < PLAYER_ANTI_MOB_SPAWN_SIZE
+    ) < DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE
     {
         // try another spot
         mob_posx = rng.gen_range(-BOX_SIZE..=BOX_SIZE);

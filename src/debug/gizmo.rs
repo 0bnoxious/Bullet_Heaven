@@ -6,7 +6,7 @@ use bevy_xpbd_2d::{
 };
 
 use crate::{
-    player::{Player, PLAYER_ANTI_MOB_SPAWN_SIZE},
+    player::{Player, DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE},
     projectile::Projectile,
     targeting::{define_spread, HasTarget},
     weapon::shotgun::Shotgun,
@@ -33,7 +33,10 @@ pub fn draw_antispawn_zone(mut gizmos: Gizmos, q: Query<&Position, With<Player>>
             y: player.y,
         },
         0.0,
-        Vec2::new(PLAYER_ANTI_MOB_SPAWN_SIZE, PLAYER_ANTI_MOB_SPAWN_SIZE),
+        Vec2::new(
+            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE,
+            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE,
+        ),
         Color::PINK,
     )
 }

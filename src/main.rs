@@ -13,7 +13,10 @@ use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
-use debug::egui::{toggle_shotgun, ui_example_system, update_player_shotgun, UiState};
+use debug::egui::{
+    initialize_uistate, toggle_shotgun, ui_example_system, update_player_shotgun,
+    update_player_stats, UiState,
+};
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -22,7 +25,10 @@ use mob::spawner::SpawnTimer;
 use player::player_input::{
     player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
 };
-use player::{move_player, player_spawner::*, swap_player_aim};
+use player::{
+    move_player, player_spawner::*, swap_player_aim, update_player_attack_timer,
+    PlayerAttackSpeedChange,
+};
 use projectile::{handle_projectile_collision, move_shotgun_projectile, projectile_spawner::*};
 use std::time::Duration;
 use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
@@ -35,7 +41,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
-        .insert_resource(SubstepCount(6))
+        .insert_resource(SubstepCount(2))
         .init_resource::<UiState>()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
@@ -59,7 +65,13 @@ fn main() {
         ))
         .add_systems(
             Startup,
-            (setup, spawn_player, define_space, spawn_waves_manager),
+            (
+                setup,
+                spawn_player,
+                define_space,
+                spawn_waves_manager,
+                initialize_uistate,
+            ),
         )
         .add_systems(
             Update,
@@ -79,6 +91,7 @@ fn main() {
                 move_shotgun_projectile,
                 //debug
                 update_player_shotgun,
+                update_player_stats,
                 toggle_shotgun,
                 //draw_collider,
                 //draw_antispawn_zone,
@@ -89,8 +102,10 @@ fn main() {
         .add_systems(Update, player_walks)
         .add_systems(Update, player_swaps_aim)
         .add_systems(Update, ui_example_system)
+        .add_systems(Update, update_player_attack_timer)
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
+        .add_event::<PlayerAttackSpeedChange>()
         .add_systems(Last, despawn_dead)
         .register_type::<HasTarget>()
         .run()

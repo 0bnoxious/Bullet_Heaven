@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
-use crate::{global::Stats, player::Player, weapon::shotgun::Shotgun};
+use crate::{
+    global::Stats,
+    player::{Player, PlayerAttackSpeedChange},
+    weapon::shotgun::Shotgun,
+};
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -11,7 +15,18 @@ pub struct UiState {
     is_shotgun_equiped: bool,
 }
 
-pub fn ui_example_system(mut ui_state: ResMut<UiState>, mut contexts: EguiContexts) {
+pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
+    ui_state.is_pistol_equiped = false;
+    ui_state.is_shotgun_equiped = false;
+    ui_state.player_attack_speed = 1010.;
+    ui_state.player_shotgun_bullet_count = 1.;
+}
+
+pub fn ui_example_system(
+    mut ui_state: ResMut<UiState>,
+    mut contexts: EguiContexts,
+    mut event_writer: EventWriter<PlayerAttackSpeedChange>,
+) {
     let ctx = contexts.ctx_mut();
 
     egui::SidePanel::left("side_panel")
@@ -23,34 +38,29 @@ pub fn ui_example_system(mut ui_state: ResMut<UiState>, mut contexts: EguiContex
                 egui::Slider::new(&mut ui_state.player_attack_speed, 110.0..=3010.0)
                     .text("Player attack speed"),
             );
-            if ui.button("+").clicked() {
+
+            if ui.button("Attack speed + 100ms").clicked() {
                 ui_state.player_attack_speed += 100.;
+                event_writer.send(PlayerAttackSpeedChange {});
             }
-            if ui.button("-").clicked() {
+            if ui.button("Attack Speedd - 100ms").clicked() {
                 ui_state.player_attack_speed -= 100.;
+                event_writer.send(PlayerAttackSpeedChange {});
             }
 
             let bullet_label = format!(
                 "{}{}",
-                "shotgun bullets: ",
-                ui_state.player_shotgun_bullet_count.to_string()
+                "shotgun bullets: ", ui_state.player_shotgun_bullet_count
             );
             ui.horizontal(|ui| {
                 ui.label(bullet_label);
-                if ui.button("+").clicked() {
+                if ui.button("Bulllet +1").clicked() {
                     ui_state.player_shotgun_bullet_count += 1.;
                 }
-                if ui.button("-").clicked() {
+                if ui.button("Bullet -1").clicked() {
                     ui_state.player_shotgun_bullet_count -= 1.;
                 }
             });
-
-            if ui.button("+").clicked() {
-                ui_state.player_attack_speed += 100.;
-            }
-            if ui.button("-").clicked() {
-                ui_state.player_attack_speed -= 100.;
-            }
 
             ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.checkbox(&mut ui_state.is_pistol_equiped, "Pistol");
@@ -68,16 +78,17 @@ pub fn toggle_shotgun(
 ) {
     if ui_state.is_shotgun_equiped {
         if player_shotgun_entity_query.is_empty() {
-            println!("Adding shotgun!");
+            let playercount = player_entity_query.iter().count();
             for player_entity in &mut player_entity_query {
+                println!("Adding shotgun to {} players!", playercount);
                 commands
                     .entity(player_entity)
                     .insert(Shotgun { ..default() });
             }
         }
     } else if !player_shotgun_entity_query.is_empty() {
-        println!("Removing shotgun!");
         for player_entity in &mut player_entity_query {
+            println!("Removing shotgun!");
             commands.entity(player_entity).remove::<Shotgun>();
         }
     }
@@ -94,10 +105,9 @@ pub fn update_player_stats(
 
 pub fn update_player_shotgun(
     mut player_shotgun_query: Query<&mut Shotgun, With<Player>>,
-    mut ui_state: ResMut<UiState>,
+    ui_state: ResMut<UiState>,
 ) {
     for mut player_shotgun in &mut player_shotgun_query {
-        ui_state.player_shotgun_bullet_count = player_shotgun.bullet_count as f32;
-        player_shotgun.bullet_count = ui_state.player_attack_speed as i32;
+        player_shotgun.bullet_count = ui_state.player_shotgun_bullet_count as i32;
     }
 }

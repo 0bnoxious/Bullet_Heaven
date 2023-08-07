@@ -1,12 +1,7 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{
-    global::*,
-    mob::infected::Infected,
-    player::Player,
-    targeting::{ClosestTarget, HasTarget},
-};
+use crate::{global::*, mob::infected::Infected, player::Player, targeting::HasTarget};
 
 pub mod projectile_spawner;
 
@@ -50,7 +45,6 @@ pub fn move_shotgun_projectile(
     >,
     player_query: Query<&Position, With<Player>>,
     projectile_aim_query: Query<&AimType, With<Projectile>>,
-    mut closest_target: ClosestTarget,
 ) {
     for projectile_aim in projectile_aim_query.iter() {
         match projectile_aim {
@@ -63,12 +57,6 @@ pub fn move_shotgun_projectile(
                 }
             }
 
-            // aim the position of the mouse at spawn
-            //AimType::Mouse => unimplemented!(),
-
-            // constantly aim the mouse position
-            //AimType::HomingMouse => unimplemented!(),
-
             // aim the position of the closest target at spawn
             AimType::Closest => {
                 for (_, mut projectile_velocity, mut projectile_rotation, projectile_target) in
@@ -76,7 +64,7 @@ pub fn move_shotgun_projectile(
                 {
                     // set the velocity toward closest target at spawn
                     if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
-                        /*let player_position = Vec3::new(
+                        let player_position = Vec3::new(
                             player_query.get_single().unwrap().x,
                             player_query.get_single().unwrap().y,
                             0.,
@@ -89,9 +77,9 @@ pub fn move_shotgun_projectile(
 
                         // get the quaternion to rotate from the initial projectile facing direction to the direction
                         // facing the closest infected
-                        let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);*/
-                        // rotate the projectile to face the closest infected
-                        //*projectile_rotation = Rotation::from(rotate_to_infected);
+                        let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
+                        //rotate the projectile to face the closest infected
+                        *projectile_rotation = Rotation::from(rotate_to_infected);
 
                         projectile_velocity.x =
                             projectile_target.target_position.x * PROJECTILE_SPEED;
@@ -100,35 +88,7 @@ pub fn move_shotgun_projectile(
                     }
                 }
             }
-
-            // constantly aim the closest target
-            AimType::HomingClosest => {
-                for (projectile_position, mut projectile_velocity, mut projectile_rotation, _) in
-                    &mut projectile_query
-                {
-                    // Cast Projectile target position as Vec3 for quat rotation
-                    let closest = closest_target.infected();
-                    let projectile_target_vec3 = Vec3::new(closest.x, closest.y, 0.);
-
-                    // get the vector from the projectile to the closest infected and normalise it.
-                    let to_closest = (projectile_target_vec3
-                        - Vec3 {
-                            x: projectile_position.x,
-                            y: projectile_position.y,
-                            z: 0.,
-                        })
-                    .normalize();
-
-                    // get the quaternion to rotate from the initial projectile facing direction to the direction
-                    // facing the closest infected
-                    let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
-
-                    // rotate the projectile to face the closest infected
-                    *projectile_rotation = Rotation::from(rotate_to_infected);
-                    projectile_velocity.x = to_closest.x * PROJECTILE_SPEED;
-                    projectile_velocity.y = to_closest.y * PROJECTILE_SPEED;
-                }
-            }
+            AimType::HomingClosest => todo!(),
         }
     }
 }
@@ -161,7 +121,8 @@ pub fn handle_projectile_collision(
     }
 }
 
-/*#[allow(clippy::type_complexity)]
+/*
+#[allow(clippy::type_complexity)]
 pub fn move_projectile(
     mut projectile_query: Query<
         (

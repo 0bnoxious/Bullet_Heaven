@@ -19,7 +19,7 @@ pub struct HasTarget {
     pub target_position: Vec2,
 }
 
-pub fn player_targeting(
+pub fn target_enemy(
     mut commands: Commands,
     infected_as_target_querry: Query<&Target, With<Infected>>,
     mut has_target_query: Query<Entity, (With<Player>, Without<HasTarget>)>,
@@ -46,7 +46,7 @@ pub fn player_targeting(
     }
 }
 
-pub fn move_unit_to_target(
+pub fn move_mob_to_target(
     mut infected_query: Query<
         (&mut LinearVelocity, &Position, &HasTarget),
         (With<Mob>, Without<Player>),

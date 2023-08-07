@@ -7,16 +7,13 @@ pub mod projectile;
 pub mod targeting;
 pub mod weapon;
 
-//debug
-//use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-//use debug::draw_antispawn_zone;
-
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
+use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
-use debug::{draw_player_target_line, draw_weapon_spread_lines};
+use debug::egui::{ui_example_system, UiState};
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -28,7 +25,7 @@ use player::player_input::{
 use player::{move_player, player_spawner::*, swap_player_aim};
 use projectile::{handle_projectile_collision, move_shotgun_projectile, projectile_spawner::*};
 use std::time::Duration;
-use targeting::{move_unit_to_target, player_targeting, target_player};
+use targeting::{move_mob_to_target, target_enemy, target_player};
 use weapon::shotgun::fire_shotgun;
 
 fn main() {
@@ -39,6 +36,7 @@ fn main() {
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
         .insert_resource(SubstepCount(2))
+        .init_resource::<UiState>()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -55,8 +53,9 @@ fn main() {
                 ..default()
             }),
             PhysicsPlugins::default(),
-            WorldInspectorPlugin::default(),
+            //WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
+            EguiPlugin,
         ))
         .add_systems(
             Startup,
@@ -69,14 +68,14 @@ fn main() {
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
-                move_unit_to_target,
+                move_mob_to_target,
                 toggle_resolution,
                 apply_damage,
                 manage_waves,
                 move_player,
                 swap_player_aim,
                 fire_shotgun,
-                player_targeting,
+                target_enemy,
                 move_shotgun_projectile,
                 //debug
                 //draw_collider,
@@ -87,6 +86,7 @@ fn main() {
         )
         .add_systems(Update, player_walks)
         .add_systems(Update, player_swaps_aim)
+        .add_systems(Update, ui_example_system)
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
         .add_systems(Last, despawn_dead)

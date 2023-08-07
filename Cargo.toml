@@ -10,6 +10,7 @@ rand = "0.8.5"
 bevy_xpbd_2d = "0.2"
 bevy-inspector-egui = "0.19"
 leafwing-input-manager = "0.10.0"
+bevy_egui = "0.21"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

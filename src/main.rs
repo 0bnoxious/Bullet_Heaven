@@ -13,7 +13,7 @@ use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
-use debug::egui::{ui_example_system, UiState};
+use debug::egui::{toggle_shotgun, ui_example_system, update_player_shotgun, UiState};
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
@@ -25,7 +25,7 @@ use player::player_input::{
 use player::{move_player, player_spawner::*, swap_player_aim};
 use projectile::{handle_projectile_collision, move_shotgun_projectile, projectile_spawner::*};
 use std::time::Duration;
-use targeting::{move_mob_to_target, target_enemy, target_player};
+use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
 use weapon::shotgun::fire_shotgun;
 
 fn main() {
@@ -35,7 +35,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
-        .insert_resource(SubstepCount(2))
+        .insert_resource(SubstepCount(6))
         .init_resource::<UiState>()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
@@ -53,9 +53,9 @@ fn main() {
                 ..default()
             }),
             PhysicsPlugins::default(),
-            //WorldInspectorPlugin::default(),
+            WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
-            EguiPlugin,
+            //EguiPlugin,
         ))
         .add_systems(
             Startup,
@@ -78,6 +78,8 @@ fn main() {
                 target_enemy,
                 move_shotgun_projectile,
                 //debug
+                update_player_shotgun,
+                toggle_shotgun,
                 //draw_collider,
                 //draw_antispawn_zone,
                 //draw_player_target_line,
@@ -90,6 +92,7 @@ fn main() {
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
         .add_systems(Last, despawn_dead)
+        .register_type::<HasTarget>()
         .run()
 }
 

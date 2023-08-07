@@ -49,7 +49,7 @@ pub fn spawn_player(mut commands: Commands) {
         AttackTimer {
             timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
         },
-        Shotgun { ..default() },
+        //Shotgun { ..default() },
         Name::new("Player"),
     ));
 }

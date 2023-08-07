@@ -11,10 +11,10 @@ use crate::{
     projectile::Projectile,
 };
 
-#[derive(Component)]
+#[derive(Component, Reflect, Debug)]
 pub struct Target;
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Reflect, Debug)]
 pub struct HasTarget {
     pub target_position: Vec2,
 }
@@ -63,15 +63,19 @@ pub fn move_mob_to_target(
 
 pub fn target_player(
     mut commands: Commands,
-    player_quary: Query<&Position, With<Player>>,
-    mut infected_querry: Query<Entity, (With<Infected>, Without<HasTarget>)>,
+    player_query: Query<&Position, With<Player>>,
+    mut infected_without_target_query: Query<Entity, (With<Infected>, Without<HasTarget>)>,
+    mut infected_target_query: Query<&mut HasTarget, With<Infected>>,
 ) {
-    let player_position: Vec2 = player_quary.single().0;
+    let player_position: Vec2 = player_query.single().0;
 
-    for infected_entity in infected_querry.iter_mut() {
+    for infected_entity in infected_without_target_query.iter_mut() {
         commands.entity(infected_entity).insert(HasTarget {
             target_position: player_position,
         });
+    }
+    for mut infected_target in &mut infected_target_query {
+        infected_target.target_position = player_position;
     }
 }
 

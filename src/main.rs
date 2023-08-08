@@ -14,7 +14,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
 use debug::egui::{
-    initialize_uistate, toggle_shotgun, ui_example_system, update_player_shotgun,
+    initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_player_shotgun,
     update_player_stats, UiState,
 };
 use global::*;
@@ -22,16 +22,15 @@ use leafwing_input_manager::prelude::*;
 use map::define_space;
 use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
-use player::player_input::{
-    player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
-};
+use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
-    move_player, player_spawner::*, swap_player_aim, update_player_attack_timer,
-    PlayerAttackSpeedChange,
+    move_player, spawner::*, swap_player_aim, update_player_attack_timer, PlayerAttackSpeedChange,
 };
-use projectile::{handle_projectile_collision, move_shotgun_projectile, projectile_spawner::*};
+use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
+use projectile::{handle_projectile_collision, spawner::*};
 use std::time::Duration;
 use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
+use weapon::rifle::fire_rifle;
 use weapon::shotgun::fire_shotgun;
 
 fn main() {
@@ -86,13 +85,16 @@ fn main() {
                 manage_waves,
                 move_player,
                 swap_player_aim,
+                fire_rifle,
                 fire_shotgun,
                 target_enemy,
                 move_shotgun_projectile,
+                move_rifle_projectile,
                 //debug
                 update_player_shotgun,
                 update_player_stats,
                 toggle_shotgun,
+                toggle_rifle,
                 //draw_collider,
                 //draw_antispawn_zone,
                 //draw_player_target_line,

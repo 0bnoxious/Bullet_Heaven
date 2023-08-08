@@ -5,10 +5,10 @@ use bevy_xpbd_2d::prelude::Position;
 
 use crate::{global::*, mob::Mob};
 
-use self::player_input::{PlayerAimSwap, PlayerWalk};
+use self::input::{PlayerAimSwap, PlayerWalk};
 
-pub mod player_input;
-pub mod player_spawner;
+pub mod input;
+pub mod spawner;
 
 pub const DEFAULT_PLAYER_SIZE: f32 = 10.;
 pub const DEFAULT_PLAYER_HIT_POINTS: i32 = 100;

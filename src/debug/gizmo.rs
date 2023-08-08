@@ -57,6 +57,7 @@ pub fn draw_player_target_line(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn draw_weapon_spread_lines(
     mut gizmos: Gizmos,
     mut query: Query<(&HasTarget, &Position, &Shotgun), (With<Player>, Without<Projectile>)>,

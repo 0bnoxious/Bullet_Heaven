@@ -5,7 +5,7 @@ use crate::{
     global::AimType,
     mob::infected::Infected,
     player::{AttackTimer, Player, DEFAULT_PLAYER_ATTACK_SPEED},
-    projectile::{projectile_spawner::ProjectileSpawner, Projectile},
+    projectile::{spawner::ProjectileSpawner, Projectile},
     targeting::{define_spread, HasTarget},
 };
 
@@ -36,6 +36,7 @@ impl Default for Shotgun {
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
 pub fn fire_shotgun(
     mut attack_timer_query: Query<&mut AttackTimer>,

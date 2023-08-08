@@ -8,8 +8,8 @@ use crate::global::AimType;
 use crate::global::*;
 
 use super::{
-    player_input::PlayerAction, AttackTimer, Player, DEFAULT_PLAYER_AIM_TYPE,
-    DEFAULT_PLAYER_ATTACK_SPEED, DEFAULT_PLAYER_SIZE,
+    input::PlayerAction, AttackTimer, Player, DEFAULT_PLAYER_AIM_TYPE, DEFAULT_PLAYER_ATTACK_SPEED,
+    DEFAULT_PLAYER_SIZE,
 };
 
 // must be added to the player entity

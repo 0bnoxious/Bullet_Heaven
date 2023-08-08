@@ -11,22 +11,26 @@ pub struct ProjectileSpawner<'w, 's> {
     commands: Commands<'w, 's>,
 }
 
+#[derive(Component)]
+pub struct FromRifle;
+
+#[derive(Component)]
+pub struct FromShotgun;
+
 impl<'w, 's> ProjectileSpawner<'w, 's> {
-    pub fn spawn_projectile(&mut self, origin: Vec2, direction: Vec2, aim_type: AimType) {
+    pub fn spawn_rifle_projectile(&mut self, origin: Vec2, direction: Vec2, aim_type: AimType) {
         self.commands.spawn((
             Projectile,
+            FromRifle,
             SpriteBundle {
                 sprite: Sprite {
                     color: Color::YELLOW,
-                    custom_size: (Some(Vec2 {
-                        x: PROJECTILE_SIZE,
-                        y: PROJECTILE_SIZE,
-                    })),
+                    custom_size: (Some(Vec2 { x: 12., y: 12. })),
                     ..default()
                 },
                 transform: Transform::from_translation(Vec3 {
-                    x: PROJECTILE_SIZE,
-                    y: PROJECTILE_SIZE,
+                    x: 12.,
+                    y: 12.,
                     z: 0.0,
                 }),
                 ..default()
@@ -42,12 +46,14 @@ impl<'w, 's> ProjectileSpawner<'w, 's> {
                 timer: Timer::new(Duration::from_secs(PROJECTILE_LIFE_SPAN), TimerMode::Once),
             },
             aim_type,
+            Name::new("Rifle bullet"),
         ));
     }
 
     pub fn spawn_shotgun_projectile(&mut self, origin: Vec2, direction: Vec2, aim_type: AimType) {
         self.commands.spawn((
             Projectile,
+            FromShotgun,
             SpriteBundle {
                 sprite: Sprite {
                     color: Color::PURPLE,

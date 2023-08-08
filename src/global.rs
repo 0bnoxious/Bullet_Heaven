@@ -35,9 +35,7 @@ impl Default for Stats {
 pub enum AimType {
     Random,
     Closest,
-    HomingClosest,
     //Mouse,
-    //HomingMouse,
 }
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -54,8 +52,7 @@ impl AimType {
         use AimType::*;
         match *self {
             Random => Closest,
-            Closest => HomingClosest,
-            HomingClosest => Random,
+            Closest => Random,
         }
     }
 }
@@ -71,11 +68,11 @@ pub enum Layer {
     Wall,
 }
 
-pub fn random_velocity(rng: &mut ThreadRng) -> Vec3 {
-    let velx = rng.gen_range(-1.0..1.0);
-    let vely = rng.gen_range(-1.0..1.0);
+pub fn random_direction(rng: &mut ThreadRng) -> Vec3 {
+    let x = rng.gen_range(-1.0..1.0);
+    let y = rng.gen_range(-1.0..1.0);
 
-    Vec3::new(velx, vely, 0.)
+    Vec3::new(x, y, 0.)
 }
 
 #[derive(Component)]

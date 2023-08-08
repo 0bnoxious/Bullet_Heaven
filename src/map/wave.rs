@@ -75,8 +75,7 @@ pub fn manage_waves(
 pub fn build_waves() -> Vec<Wave> {
     let mut waves: Vec<Wave> = Vec::new();
 
-    let mut wave_num = 0;
-    for _ in 0..NUMBER_OF_WAVES {
+    for (wave_num, _) in (0..NUMBER_OF_WAVES).enumerate() {
         let mut mob_types: Vec<MobType> = Vec::new();
         if wave_num % 2 != 0 {
             mob_types.push(MobType::InfectedRanged);
@@ -90,7 +89,6 @@ pub fn build_waves() -> Vec<Wave> {
             //kill_count: 0,
         };
         waves.push(wave);
-        wave_num += 1;
     }
 
     waves

@@ -46,6 +46,7 @@ pub fn target_enemy(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn move_mob_to_target(
     mut infected_query: Query<
         (&mut LinearVelocity, &Position, &HasTarget),
@@ -79,6 +80,7 @@ pub fn target_player(
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(SystemParam)]
 pub struct ClosestTarget<'w, 's> {
     infected_query:

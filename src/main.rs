@@ -14,8 +14,8 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
 use debug::egui::{
-    initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_player_shotgun,
-    update_player_stats, UiState,
+    initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_player_rifle_stats,
+    update_player_shotgun_stats, update_player_stats, UiState,
 };
 use global::*;
 use leafwing_input_manager::prelude::*;
@@ -24,7 +24,8 @@ use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
 use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
-    move_player, spawner::*, swap_player_aim, update_player_attack_timer, PlayerAttackSpeedChange,
+    move_player, spawner::*, swap_player_aim, update_player_rifle_cooldown,
+    update_player_shotgun_cooldown, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
 use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
 use projectile::{handle_projectile_collision, spawner::*};
@@ -91,8 +92,9 @@ fn main() {
                 move_shotgun_projectile,
                 move_rifle_projectile,
                 //debug
-                update_player_shotgun,
                 update_player_stats,
+                update_player_shotgun_cooldown,
+                update_player_rifle_cooldown,
                 toggle_shotgun,
                 toggle_rifle,
                 //draw_collider,
@@ -104,10 +106,12 @@ fn main() {
         .add_systems(Update, player_walks)
         .add_systems(Update, player_swaps_aim)
         .add_systems(Update, ui_example_system)
-        .add_systems(Update, update_player_attack_timer)
+        .add_systems(Update, update_player_shotgun_stats)
+        .add_systems(Update, update_player_rifle_stats)
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
-        .add_event::<PlayerAttackSpeedChange>()
+        .add_event::<PlayerShotGunCoolDownChange>()
+        .add_event::<PlayerRifleCoolDownChange>()
         .add_systems(Last, despawn_dead)
         .register_type::<HasTarget>()
         .run()

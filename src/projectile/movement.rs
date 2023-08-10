@@ -24,7 +24,7 @@ pub fn move_rifle_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, With<FromRifle>),
+        (With<Projectile>, With<FromRifle>, Without<FromShotgun>),
     >,
     player_query: Query<&Position, With<Player>>,
     projectile_aim_query: Query<&AimType, With<Projectile>>,
@@ -87,7 +87,7 @@ pub fn move_shotgun_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, With<FromShotgun>),
+        (With<Projectile>, With<FromShotgun>, Without<FromRifle>),
     >,
     player_query: Query<&Position, With<Player>>,
     projectile_aim_query: Query<&AimType, With<Projectile>>,
@@ -108,6 +108,7 @@ pub fn move_shotgun_projectile(
                 for (_, mut projectile_velocity, mut projectile_rotation, projectile_target) in
                     &mut projectile_query
                 {
+                    //println!("is projectile velocity zero? : {projectile_velocity:?}");
                     // set the velocity toward closest target at spawn
                     if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
                         let player_position = Vec3::new(

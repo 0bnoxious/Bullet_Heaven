@@ -3,33 +3,38 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::{
     global::Stats,
-    player::{Player, PlayerAttackSpeedChange},
-    weapon::{rifle::Rifle, shotgun::Shotgun},
+    player::{Player, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange},
+    weapon::{
+        rifle::{Rifle, RifleBundle, RifleCoolDown},
+        shotgun::{ShotGunCoolDown, Shotgun, ShotgunBundle},
+    },
 };
 
 #[derive(Default, Resource)]
 pub struct UiState {
-    player_attack_speed: f32,
+    player_movement_speed: f32,
+    is_shotgun_equiped: bool,
+    player_shotgun_cooldown: f32,
     player_shotgun_bullet_count: f32,
     is_rifle_equiped: bool,
-    is_shotgun_equiped: bool,
+    player_rifle_cooldown: f32,
 }
 
 pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
+    ui_state.player_movement_speed = 400.;
     ui_state.is_rifle_equiped = false;
+    ui_state.player_rifle_cooldown = 1000.;
     ui_state.is_shotgun_equiped = false;
-    ui_state.player_attack_speed = 1010.;
+    ui_state.player_shotgun_cooldown = 1000.;
     ui_state.player_shotgun_bullet_count = 1.;
 }
 
 pub fn ui_example_system(
     mut ui_state: ResMut<UiState>,
     mut contexts: EguiContexts,
-    mut event_writer: EventWriter<PlayerAttackSpeedChange>,
+    mut event_writer: EventWriter<PlayerShotGunCoolDownChange>,
 ) {
     let ctx = contexts.ctx_mut();
-    /*let attack_speed_slider =
-    egui::Slider::new(&mut ui_state.player_attack_speed, 100.0..=3000.0).logarithmic(true);*/
 
     egui::SidePanel::left("side_panel")
         .default_width(200.0)
@@ -38,24 +43,24 @@ pub fn ui_example_system(
                 ui.heading("Player Stats: ");
             });
 
-            ui.label("Attack Speed");
+            ui.label("Movement Speed");
             ui.horizontal(|ui| {
                 if ui
                     .add(
-                        egui::Slider::new(&mut ui_state.player_attack_speed, 10.0..=3000.0)
+                        egui::Slider::new(&mut ui_state.player_movement_speed, 10.0..=3000.0)
                             .logarithmic(true),
                     )
                     .changed()
                 {
-                    event_writer.send(PlayerAttackSpeedChange {});
+                    event_writer.send(PlayerShotGunCoolDownChange {});
                 }
-                if ui.button("-100ms").clicked() {
-                    ui_state.player_attack_speed -= 100.;
-                    event_writer.send(PlayerAttackSpeedChange {});
+                if ui.button("-50ms").clicked() {
+                    ui_state.player_movement_speed -= 50.;
+                    event_writer.send(PlayerShotGunCoolDownChange {});
                 }
-                if ui.button("+100ms").clicked() {
-                    ui_state.player_attack_speed += 100.;
-                    event_writer.send(PlayerAttackSpeedChange {});
+                if ui.button("+50ms").clicked() {
+                    ui_state.player_movement_speed += 50.;
+                    event_writer.send(PlayerShotGunCoolDownChange {});
                 }
             });
 
@@ -69,6 +74,28 @@ pub fn ui_example_system(
                 "{}{}",
                 "shotgun bullets: ", ui_state.player_shotgun_bullet_count
             );
+            ui.label("Cooldown");
+            ui.horizontal(|ui| {
+                if ui
+                    .add(
+                        egui::Slider::new(&mut ui_state.player_shotgun_cooldown, 10.0..=3000.0)
+                            .logarithmic(true),
+                    )
+                    .changed()
+                {
+                    event_writer.send(PlayerShotGunCoolDownChange {});
+                }
+                if ui.button("-100ms").clicked() {
+                    ui_state.player_shotgun_cooldown -= 100.;
+                    event_writer.send(PlayerShotGunCoolDownChange {});
+                }
+                if ui.button("+100ms").clicked() {
+                    ui_state.player_shotgun_cooldown += 100.;
+                    event_writer.send(PlayerShotGunCoolDownChange {});
+                }
+            });
+
+            ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.horizontal(|ui| {
                 ui.label(bullet_label);
                 if ui.button("+1 Bullet").clicked() {
@@ -81,6 +108,26 @@ pub fn ui_example_system(
 
             ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.checkbox(&mut ui_state.is_rifle_equiped, "Rifle");
+            ui.label("Cooldown");
+            ui.horizontal(|ui| {
+                if ui
+                    .add(
+                        egui::Slider::new(&mut ui_state.player_rifle_cooldown, 10.0..=3000.0)
+                            .logarithmic(true),
+                    )
+                    .changed()
+                {
+                    event_writer.send(PlayerRifleCoolDownChange {});
+                }
+                if ui.button("r-100ms").clicked() {
+                    ui_state.player_rifle_cooldown -= 100.;
+                    event_writer.send(PlayerRifleCoolDownChange {});
+                }
+                if ui.button("r+100ms").clicked() {
+                    ui_state.player_rifle_cooldown += 100.;
+                    event_writer.send(PlayerRifleCoolDownChange {});
+                }
+            });
         });
 }
 
@@ -94,13 +141,18 @@ pub fn toggle_rifle(
         if player_rifle_entity_query.is_empty() {
             for player_entity in &mut player_entity_query {
                 println!("Adding Rifle!");
-                commands.entity(player_entity).insert(Rifle { ..default() });
+                commands
+                    .entity(player_entity)
+                    .insert(RifleBundle::default());
             }
         }
     } else if !player_rifle_entity_query.is_empty() {
         for player_entity in &mut player_entity_query {
             println!("Removing Rifle!");
-            commands.entity(player_entity).remove::<Rifle>();
+            commands
+                .entity(player_entity)
+                .remove::<Rifle>()
+                .remove::<RifleCoolDown>();
         }
     }
 }
@@ -117,13 +169,16 @@ pub fn toggle_shotgun(
                 println!("Adding Shotgun!");
                 commands
                     .entity(player_entity)
-                    .insert(Shotgun { ..default() });
+                    .insert(ShotgunBundle::default());
             }
         }
     } else if !player_shotgun_entity_query.is_empty() {
         for player_entity in &mut player_entity_query {
             println!("Removing Shotgun!");
-            commands.entity(player_entity).remove::<Shotgun>();
+            commands
+                .entity(player_entity)
+                .remove::<Shotgun>()
+                .remove::<ShotGunCoolDown>();
         }
     }
 }
@@ -133,15 +188,25 @@ pub fn update_player_stats(
     ui_state: ResMut<UiState>,
 ) {
     for mut player_stats in &mut player_stats_query {
-        player_stats.attack_speed = ui_state.player_attack_speed;
+        player_stats.attack_speed = ui_state.player_movement_speed;
     }
 }
 
-pub fn update_player_shotgun(
+pub fn update_player_rifle_stats(
+    mut player_rifle_query: Query<&mut Rifle, With<Player>>,
+    ui_state: ResMut<UiState>,
+) {
+    for mut player_rifle in &mut player_rifle_query {
+        player_rifle.fire_rate = ui_state.player_rifle_cooldown as f64;
+    }
+}
+
+pub fn update_player_shotgun_stats(
     mut player_shotgun_query: Query<&mut Shotgun, With<Player>>,
     ui_state: ResMut<UiState>,
 ) {
     for mut player_shotgun in &mut player_shotgun_query {
+        player_shotgun.fire_rate = ui_state.player_shotgun_cooldown as f64;
         player_shotgun.bullet_count = ui_state.player_shotgun_bullet_count as i32;
     }
 }

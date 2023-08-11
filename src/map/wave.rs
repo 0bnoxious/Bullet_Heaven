@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub const NUMBER_OF_WAVES: usize = 10;
-pub const MAX_WAVE_MOB_COUNT: u64 = 500;
+pub const MAX_WAVE_MOB_COUNT: u64 = 1;
 pub const TIME_BETWEEN_WAVES: u64 = 1000;
 pub const DELAY_BETWEEN_SPAWN: u64 = 1000;
 

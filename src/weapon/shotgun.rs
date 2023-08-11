@@ -83,12 +83,19 @@ pub fn fire_shotgun(
         attack_timer.timer.tick(time.delta());
         if !infected_position_query.is_empty() && attack_timer.timer.finished() {
             for (player_has_target, player_position, shotgun) in &mut query {
+                let mut bullentnum = 0;
                 for _ in 0..shotgun.bullet_count {
+                    bullentnum += 1;
                     let spread = define_spread(
                         player_position.0,
                         player_has_target.target_position,
                         shotgun.spread,
                     );
+                    println!(
+                        "unspreaded bullet #{bullentnum:?} : {}",
+                        player_has_target.target_position.normalize()
+                    );
+                    println!("spreaded bullet #{bullentnum}: {spread:?}");
                     projectile_spawner.spawn_shotgun_projectile(
                         player_position.0,
                         spread,

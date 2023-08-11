@@ -98,20 +98,20 @@ pub struct PlayerRifleCoolDownChange {}
 pub fn update_player_rifle_cooldown(
     mut commands: Commands,
     mut player_attack_speed_change_events: EventReader<PlayerRifleCoolDownChange>,
-    shotgun_query: Query<&mut Rifle, With<Player>>,
+    rifle_query: Query<&mut Rifle, With<Player>>,
     mut timer_query: Query<Entity, (With<RifleCoolDown>, With<Player>)>,
 ) {
     for _ in player_attack_speed_change_events.iter() {
         for entity in &mut timer_query {
-            for shotgun in shotgun_query.iter() {
-                let updated_attack_timer = ShotGunCoolDown {
+            for rifle in rifle_query.iter() {
+                let updated_rifle_timer = RifleCoolDown {
                     timer: Timer::new(
-                        Duration::from_millis(shotgun.fire_rate as u64),
+                        Duration::from_millis(rifle.fire_rate as u64),
                         TimerMode::Repeating,
                     ),
                 };
-                commands.entity(entity).remove::<ShotGunCoolDown>();
-                commands.entity(entity).insert(updated_attack_timer);
+                commands.entity(entity).remove::<RifleCoolDown>();
+                commands.entity(entity).insert(updated_rifle_timer);
             }
         }
     }

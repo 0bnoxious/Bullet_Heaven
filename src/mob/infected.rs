@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-pub const DEFAULT_INFECTED_HP: i32 = 3;
+pub const DEFAULT_INFECTED_HP: i32 = 5000;
 pub const DEFAULT_INFECTED_DEFENSE: i32 = 0;
 pub const DEFAULT_INFECTED_DAMAGE: i32 = 1;
 pub const DEFAULT_INFECTED_ATTACK_SPEED: f32 = 1.;
-pub const DEFAULT_INFECTED_MOVEMENT_SPEED: f32 = 100.;
+pub const DEFAULT_INFECTED_MOVEMENT_SPEED: f32 = 0.;
 
 //pub const DEFAULT_INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 pub const DEFAULT_INFECTED_COLOR: Color = Color::RED;

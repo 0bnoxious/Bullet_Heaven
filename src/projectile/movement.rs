@@ -6,6 +6,7 @@ use crate::{
     global::{random_direction, AimType},
     player::Player,
     targeting::{ClosestTarget, HasTarget},
+    weapon::shotgun::Shotgun,
 };
 
 use super::{
@@ -24,7 +25,7 @@ pub fn move_rifle_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, With<FromRifle>, Without<FromShotgun>),
+        (With<Projectile>, Without<FromShotgun>),
     >,
     player_query: Query<&Position, With<Player>>,
     projectile_aim_query: Query<&AimType, With<Projectile>>,
@@ -79,6 +80,24 @@ pub fn move_rifle_projectile(
 }
 
 #[allow(clippy::type_complexity)]
+pub fn move_shotgun_projectile2(
+    mut projectile_velocity_query: Query<
+        &mut LinearVelocity,
+        (With<Projectile>, With<FromShotgun>),
+    >,
+    projectile_target_query: Query<&HasTarget, (With<Projectile>, With<FromShotgun>)>,
+) {
+    for mut velocity in &mut projectile_velocity_query {
+        if velocity.0 == Vec2::ZERO {
+            for target in projectile_target_query.iter() {
+                velocity.x = target.target_position.x * apply_speed_variance(PROJECTILE_SPEED);
+                velocity.y = target.target_position.y * apply_speed_variance(PROJECTILE_SPEED);
+            }
+        }
+    }
+}
+
+#[allow(clippy::type_complexity)]
 pub fn move_shotgun_projectile(
     mut projectile_query: Query<
         (
@@ -87,7 +106,7 @@ pub fn move_shotgun_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, With<FromShotgun>, Without<FromRifle>),
+        (With<Projectile>, Without<FromRifle>),
     >,
     player_query: Query<&Position, With<Player>>,
     projectile_aim_query: Query<&AimType, With<Projectile>>,
@@ -108,9 +127,8 @@ pub fn move_shotgun_projectile(
                 for (_, mut projectile_velocity, mut projectile_rotation, projectile_target) in
                     &mut projectile_query
                 {
-                    //println!("is projectile velocity zero? : {projectile_velocity:?}");
                     // set the velocity toward closest target at spawn
-                    if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
+                    if projectile_velocity.0 == Vec2::ZERO {
                         let player_position = Vec3::new(
                             player_query.get_single().unwrap().x,
                             player_query.get_single().unwrap().y,
@@ -184,9 +202,7 @@ pub fn apply_speed_variance(initial_speed: f32) -> f32 {
     let minimum_speed = initial_speed * ((100. - PROJECTILE_SPEED_VARIANCE_PERCENTAGE) / 100.);
     let maximum_speed = initial_speed * ((100. + PROJECTILE_SPEED_VARIANCE_PERCENTAGE) / 100.);
     //determine deviation from target using a bell curve type distribution
-    let modified_speed = rng.gen_range(minimum_speed..maximum_speed)
-        + rng.gen_range(minimum_speed..maximum_speed)
-        - PROJECTILE_SPEED_VARIANCE_PERCENTAGE * 2.;
 
-    modified_speed
+    rng.gen_range(minimum_speed..maximum_speed) + rng.gen_range(minimum_speed..maximum_speed)
+        - PROJECTILE_SPEED_VARIANCE_PERCENTAGE * 2.
 }

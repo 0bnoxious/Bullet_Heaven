@@ -71,13 +71,24 @@ pub fn draw_weapon_spread_lines(
         let right = Vec2::from_angle(-(gun.spread).to_radians())
             .rotate(player_has_target.target_position - player_position.0);
 
+        /*println!(
+            "player has target at pos : {}",
+            player_has_target.target_position
+        );*/
+
         let spread = define_spread(
             player_position.0,
             player_has_target.target_position,
             gun.spread,
         );
 
-        gizmos.line_2d(player_position.0, spread, Color::FUCHSIA);
+        println!("spread: {spread:?}");
+
+        gizmos.line_2d(
+            player_position.0,
+            spread * distance_to_target,
+            Color::FUCHSIA,
+        );
 
         gizmos.line_2d(
             player_position.0,

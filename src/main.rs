@@ -28,9 +28,7 @@ use player::{
     move_player, spawner::*, swap_player_aim, update_player_rifle_cooldown,
     update_player_shotgun_cooldown, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
-use projectile::movement::{
-    move_rifle_projectile, move_shotgun_projectile, move_shotgun_projectile2,
-};
+use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
 use projectile::{handle_projectile_collision, spawner::*};
 use std::time::Duration;
 use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
@@ -92,9 +90,9 @@ fn main() {
                 fire_rifle,
                 fire_shotgun,
                 target_enemy,
-                move_shotgun_projectile2,
-                //move_shotgun_projectile,
-                //move_rifle_projectile,
+                //move_shotgun_projectile2,
+                move_shotgun_projectile,
+                move_rifle_projectile,
                 //debug############################################
                 //move_projectile_to_target,
                 update_player_stats,
@@ -105,7 +103,7 @@ fn main() {
                 //draw_collider,
                 //draw_antispawn_zone,
                 //draw_player_target_line,
-                draw_weapon_spread_lines,
+                //draw_weapon_spread_lines,
             ),
         )
         .add_systems(Update, player_walks)

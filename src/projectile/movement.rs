@@ -25,10 +25,10 @@ pub fn move_rifle_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, Without<FromShotgun>),
+        (With<Projectile>, With<FromRifle>),
     >,
     player_query: Query<&Position, With<Player>>,
-    projectile_aim_query: Query<&AimType, With<Projectile>>,
+    projectile_aim_query: Query<&AimType, (With<Projectile>, With<FromRifle>)>,
 ) {
     for projectile_aim in projectile_aim_query.iter() {
         match projectile_aim {
@@ -79,7 +79,7 @@ pub fn move_rifle_projectile(
     }
 }
 
-#[allow(clippy::type_complexity)]
+/*#[allow(clippy::type_complexity)]
 pub fn move_shotgun_projectile2(
     mut projectile_velocity_query: Query<
         &mut LinearVelocity,
@@ -95,7 +95,7 @@ pub fn move_shotgun_projectile2(
             }
         }
     }
-}
+}*/
 
 #[allow(clippy::type_complexity)]
 pub fn move_shotgun_projectile(
@@ -106,10 +106,10 @@ pub fn move_shotgun_projectile(
             &mut Rotation,
             &mut HasTarget,
         ),
-        (With<Projectile>, Without<FromRifle>),
+        (With<Projectile>, With<FromShotgun>),
     >,
     player_query: Query<&Position, With<Player>>,
-    projectile_aim_query: Query<&AimType, With<Projectile>>,
+    projectile_aim_query: Query<&AimType, (With<Projectile>, With<FromShotgun>)>,
 ) {
     for projectile_aim in projectile_aim_query.iter() {
         match projectile_aim {

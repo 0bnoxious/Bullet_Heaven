@@ -24,11 +24,11 @@ pub struct UiState {
 
 pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
     ui_state.player_movement_speed = 400.;
-    ui_state.is_rifle_equiped = false;
-    ui_state.player_rifle_cooldown = 1000.;
-    ui_state.is_shotgun_equiped = false;
-    ui_state.player_shotgun_cooldown = 1000.;
-    ui_state.player_shotgun_bullet_count = 1.;
+    ui_state.is_rifle_equiped = true;
+    ui_state.player_rifle_cooldown = 10.;
+    ui_state.is_shotgun_equiped = true;
+    ui_state.player_shotgun_cooldown = 10.;
+    ui_state.player_shotgun_bullet_count = 8.;
 }
 
 pub fn ui_example_system(

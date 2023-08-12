@@ -12,7 +12,6 @@ pub fn move_player(
     for player_walk_event in events.iter() {
         for (mut player_position, player_stats) in &mut player_query {
             let direction_vec2: Vec2 = player_walk_event.direction.into();
-            println!("player movement speed : {}", player_stats.movement_speed);
             player_position.0 += direction_vec2.normalize() * player_stats.movement_speed as f32;
         }
     }

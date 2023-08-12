@@ -79,8 +79,6 @@ pub fn draw_weapon_spread_lines(
             gun.spread,
         );
 
-        println!("spread: {spread:?}");
-
         gizmos.line_2d(
             player_position.0,
             spread * distance_to_target,

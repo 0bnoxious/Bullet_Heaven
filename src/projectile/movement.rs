@@ -18,138 +18,88 @@ const PROJECTILE_SPEED_VARIANCE_PERCENTAGE: f32 = 15.;
 #[allow(clippy::type_complexity)]
 pub fn move_rifle_projectile(
     mut projectile_query: Query<
-        (
-            &Position,
-            &mut LinearVelocity,
-            &mut Rotation,
-            &mut HasTarget,
-        ),
+        (&mut LinearVelocity, &mut Rotation, &mut HasTarget, &AimType),
         (With<Projectile>, With<FromRifle>),
     >,
     player_query: Query<&Position, With<Player>>,
-    projectile_aim_query: Query<&AimType, (With<Projectile>, With<FromRifle>)>,
 ) {
-    for projectile_aim in projectile_aim_query.iter() {
+    for (mut vel, mut rotation, target, projectile_aim) in &mut projectile_query {
         match projectile_aim {
             AimType::Random => {
                 let mut rng = rand::thread_rng();
 
-                for (_, mut vel, _, target) in &mut projectile_query {
-                    if vel.0 == Vec2::ZERO {
-                        vel.0 = target.target_position
-                            * random_direction(&mut rng).truncate()
-                            * PROJECTILE_SPEED;
-                    }
+                if vel.0 == Vec2::ZERO {
+                    vel.0 = target.target_position
+                        * random_direction(&mut rng).truncate()
+                        * PROJECTILE_SPEED;
                 }
             }
 
             // aim the position of the closest target at spawn
             AimType::Closest => {
-                for (_, mut projectile_velocity, mut projectile_rotation, projectile_target) in
-                    &mut projectile_query
-                {
-                    // set the velocity toward closest target at spawn
-                    if projectile_velocity.x == 0. && projectile_velocity.y == 0. {
-                        let player_position = Vec3::new(
-                            player_query.get_single().unwrap().x,
-                            player_query.get_single().unwrap().y,
-                            0.,
-                        );
+                // set the velocity toward closest target at spawn
+                if vel.0 == Vec2::ZERO {
+                    let player_position = Vec3::new(
+                        player_query.get_single().unwrap().x,
+                        player_query.get_single().unwrap().y,
+                        0.,
+                    );
 
-                        // Cast Projectile target position as Vec3 for quat rotation
-                        // get the vector from the projectile to the closest infected.
-                        let closest = projectile_target.target_position;
-                        let to_closest = Vec3::new(closest.x, closest.y, 0.) - player_position;
+                    // Cast Projectile target position as Vec3 for quat rotation
+                    // get the vector from the projectile to the closest infected.
+                    let closest = target.target_position;
+                    let to_closest = Vec3::new(closest.x, closest.y, 0.) - player_position;
 
-                        // get the quaternion to rotate from the initial projectile facing direction to the direction
-                        // facing the closest infected
-                        let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
-                        //rotate the projectile to face the closest infected
-                        *projectile_rotation = Rotation::from(rotate_to_infected);
+                    // get the quaternion to rotate from the initial projectile facing direction to the direction
+                    // facing the closest infected
+                    let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
+                    //rotate the projectile to face the closest infected
+                    *rotation = Rotation::from(rotate_to_infected);
 
-                        projectile_velocity.x = projectile_target.target_position.x
-                            * apply_speed_variance(PROJECTILE_SPEED);
-                        projectile_velocity.y = projectile_target.target_position.y
-                            * apply_speed_variance(PROJECTILE_SPEED);
-                    }
+                    vel.0 = target.target_position * apply_speed_variance(PROJECTILE_SPEED);
                 }
             }
         }
     }
 }
 
-/*#[allow(clippy::type_complexity)]
-pub fn move_shotgun_projectile2(
-    mut projectile_velocity_query: Query<
-        &mut LinearVelocity,
-        (With<Projectile>, With<FromShotgun>),
-    >,
-    projectile_target_query: Query<&HasTarget, (With<Projectile>, With<FromShotgun>)>,
-) {
-    for mut velocity in &mut projectile_velocity_query {
-        if velocity.0 == Vec2::ZERO {
-            for target in projectile_target_query.iter() {
-                velocity.x = target.target_position.x * apply_speed_variance(PROJECTILE_SPEED);
-                velocity.y = target.target_position.y * apply_speed_variance(PROJECTILE_SPEED);
-            }
-        }
-    }
-}*/
-
 #[allow(clippy::type_complexity)]
 pub fn move_shotgun_projectile(
     mut projectile_query: Query<
-        (
-            &Position,
-            &mut LinearVelocity,
-            &mut Rotation,
-            &mut HasTarget,
-        ),
+        (&AimType, &mut LinearVelocity, &mut Rotation, &mut HasTarget),
         (With<Projectile>, With<FromShotgun>),
     >,
     player_query: Query<&Position, With<Player>>,
-    projectile_aim_query: Query<&AimType, (With<Projectile>, With<FromShotgun>)>,
 ) {
-    for projectile_aim in projectile_aim_query.iter() {
+    for (projectile_aim, mut vel, mut projectile_rotation, target) in &mut projectile_query {
         match projectile_aim {
             AimType::Random => {
                 let mut rng = rand::thread_rng();
-                //let random_velocity = random_velocity(&mut rng);
-
-                for (_, mut vel, _, target) in &mut projectile_query {
-                    vel.0 = target.target_position * random_direction(&mut rng).truncate();
-                }
+                vel.0 = target.target_position * random_direction(&mut rng).truncate();
             }
 
             // aim the position of the closest target at spawn
             AimType::Closest => {
-                for (_, mut projectile_velocity, mut projectile_rotation, projectile_target) in
-                    &mut projectile_query
-                {
-                    // set the velocity toward closest target at spawn
-                    if projectile_velocity.0 == Vec2::ZERO {
-                        let player_position = Vec3::new(
-                            player_query.get_single().unwrap().x,
-                            player_query.get_single().unwrap().y,
-                            0.,
-                        );
+                // set the velocity toward closest target at spawn
+                if vel.0 == Vec2::ZERO {
+                    let player_position = Vec3::new(
+                        player_query.get_single().unwrap().x,
+                        player_query.get_single().unwrap().y,
+                        0.,
+                    );
 
-                        // Cast Projectile target position as Vec3 for quat rotation
-                        // get the vector from the projectile to the closest infected.
-                        let closest = projectile_target.target_position;
-                        let to_closest = Vec3::new(closest.x, closest.y, 0.) - player_position;
+                    // Cast Projectile target position as Vec3 for quat rotation
+                    // get the vector from the projectile to the closest infected.
+                    let closest = target.target_position;
+                    let to_closest = Vec3::new(closest.x, closest.y, 0.) - player_position;
 
-                        // get the quaternion to rotate from the initial projectile facing direction to the direction
-                        // facing the closest infected
-                        let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
-                        //rotate the projectile to face the closest infected
-                        *projectile_rotation = Rotation::from(rotate_to_infected);
+                    // get the quaternion to rotate from the initial projectile facing direction to the direction
+                    // facing the closest infected
+                    let rotate_to_infected = Quat::from_rotation_arc(Vec3::Y, to_closest);
+                    //rotate the projectile to face the closest infected
+                    *projectile_rotation = Rotation::from(rotate_to_infected);
 
-                        projectile_velocity.x = projectile_target.target_position.x
-                            * apply_speed_variance(PROJECTILE_SPEED);
-                        projectile_velocity.y = projectile_target.target_position.y
-                            * apply_speed_variance(PROJECTILE_SPEED);
-                    }
+                    vel.0 = target.target_position * apply_speed_variance(PROJECTILE_SPEED);
                 }
             }
         }

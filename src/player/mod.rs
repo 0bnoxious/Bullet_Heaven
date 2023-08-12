@@ -40,21 +40,6 @@ pub fn default_player_stats() -> Stats {
     }
 }
 
-// #[derive(Event)]
-// pub struct PlayerMovementSpeedChange {}
-
-// pub fn update_player_movement(
-//     mut commands: Commands,
-//     mut player_movement_speed_change_events: EventReader<PlayerMovementSpeedChange>,
-//     player_query: Query<&mut Player>,
-// ) {
-//     for _ in player_movement_speed_change_events.iter() {
-//         for player in &mut player_query {
-//             println!("new player movement speed! {}", pl);
-//         }
-//     }
-// }
-
 #[derive(Event)]
 pub struct PlayerShotGunCoolDownChange {}
 

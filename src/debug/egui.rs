@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::{
     global::Stats,
-    map::wave::{WaveManager, WaveTimerChange},
+    map::wave::{WaveEnemyCountChange, WaveManager, WaveTimerChange},
     player::{Player, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange},
     weapon::{
         rifle::{Rifle, RifleBundle, RifleCoolDown},
@@ -24,6 +24,7 @@ pub struct UiState {
     player_shotgun_spread: u32,
     wave_timer_cooldown: u32,
     enemy_spawn_cooldown: u32,
+    enemy_count: u32,
 }
 
 pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
@@ -36,6 +37,7 @@ pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
     ui_state.player_shotgun_spread = 15;
     ui_state.wave_timer_cooldown = 1000;
     ui_state.enemy_spawn_cooldown = 500;
+    ui_state.enemy_count = 200;
 }
 
 pub fn ui_example_system(
@@ -44,6 +46,7 @@ pub fn ui_example_system(
     mut rifle_cooldown_event_writer: EventWriter<PlayerRifleCoolDownChange>,
     mut shotgun_cooldown_event_writer: EventWriter<PlayerShotGunCoolDownChange>,
     mut wave_timer_event_writer: EventWriter<WaveTimerChange>,
+    mut enemy_count_event_writer: EventWriter<WaveEnemyCountChange>,
 ) {
     let ctx = contexts.ctx_mut();
 
@@ -212,6 +215,36 @@ pub fn ui_example_system(
             });
 
             // Enemy Count
+            ui.label("Enemy Count");
+            ui.horizontal(|ui| {
+                if ui
+                    .add(egui::Slider::new(&mut ui_state.enemy_count, 1..=500).logarithmic(true))
+                    .changed()
+                {
+                    enemy_count_event_writer.send(WaveEnemyCountChange {
+                        new_enemy_count: ui_state.enemy_count,
+                    });
+                }
+
+                if ui.button("-1e").clicked() {
+                    let temp_enemies = ui_state.enemy_count as i32 - 1;
+                    if temp_enemies < 0 {
+                        ui_state.enemy_count = 10;
+                    } else {
+                        ui_state.enemy_count = temp_enemies as u32;
+                    }
+
+                    enemy_count_event_writer.send(WaveEnemyCountChange {
+                        new_enemy_count: ui_state.enemy_count,
+                    });
+                }
+                if ui.button("+1e").clicked() {
+                    ui_state.enemy_count += 1000;
+                    enemy_count_event_writer.send(WaveEnemyCountChange {
+                        new_enemy_count: ui_state.enemy_count,
+                    });
+                }
+            });
         });
 }
 
@@ -326,25 +359,23 @@ pub fn update_wave_timer(
                 Duration::from_millis(event.new_wave_cooldown as u64),
                 TimerMode::Repeating,
             );
-            let skoissa = wave_manager.waves[wave_manager.current_wave_number].clone();
-            println!("Current wave! : {skoissa:?}")
+            println!("Changing wave timer to : {}", event.new_wave_cooldown);
         }
     }
 }
 
-/*pub fn wave_timer_change(
-    mut wave_timer_change_events: EventReader<WaveTimerChange>,
+pub fn update_enemy_count(
+    mut enemy_count_change_even: EventReader<WaveEnemyCountChange>,
     mut wave_manager_query: Query<&mut WaveManager>,
 ) {
-    println!("ALLO");
-    if !wave_timer_change_events.is_empty() {
-        for event in wave_timer_change_events.iter() {
-            for mut wave_manager in &mut wave_manager_query {
-                wave_manager.wave_timer = Timer::new(
-                    Duration::from_millis(event.cooldown as u64),
-                    TimerMode::Repeating,
-                )
+    for event in enemy_count_change_even.iter() {
+        for mut wave_manager in &mut wave_manager_query {
+            let mut wavenum = 0;
+            for _ in 0..wave_manager.waves.len() - 1 {
+                wavenum += 1;
+                wave_manager.waves[wavenum].max_mob_count = event.new_enemy_count;
             }
+            println!("Changing enemy count to : {}", event.new_enemy_count);
         }
     }
-}*/
+}

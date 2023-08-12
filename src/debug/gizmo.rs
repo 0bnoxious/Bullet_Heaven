@@ -34,8 +34,8 @@ pub fn draw_antispawn_zone(mut gizmos: Gizmos, q: Query<&Position, With<Player>>
         },
         0.0,
         Vec2::new(
-            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE,
-            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE,
+            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE as f32,
+            DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE as f32,
         ),
         Color::PINK,
     )
@@ -65,10 +65,12 @@ pub fn draw_weapon_spread_lines(
     for (player_has_target, player_position, gun) in &mut query {
         let distance_to_target =
             Vec2::distance(player_position.0, player_has_target.target_position);
+        let radians = (gun.spread as f32).to_radians();
 
-        let left = Vec2::from_angle((gun.spread).to_radians())
-            .rotate(player_has_target.target_position - player_position.0);
-        let right = Vec2::from_angle(-(gun.spread).to_radians())
+        let left =
+            Vec2::from_angle(radians).rotate(player_has_target.target_position - player_position.0);
+
+        let right = Vec2::from_angle(-radians)
             .rotate(player_has_target.target_position - player_position.0);
 
         let spread = define_spread(

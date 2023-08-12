@@ -8,8 +8,7 @@ pub mod shotgun;
 #[derive(Component)]
 pub struct Weapon {
     pub aim_type: AimType,
-    pub damage: f64,
-    pub fire_rate: f64,
-    pub range: f64,
-    pub spread: f64,
+    pub damage: u32,
+    pub fire_rate: u32,
+    pub spread: u32,
 }

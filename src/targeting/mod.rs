@@ -57,8 +57,8 @@ pub fn move_mob_to_target(
         // get the vector from the infected to the target and normalise it.
         let to_player = (target.target_position - position.0).normalize();
 
-        velocity.x = to_player.x * DEFAULT_INFECTED_MOVEMENT_SPEED;
-        velocity.y = to_player.y * DEFAULT_INFECTED_MOVEMENT_SPEED;
+        velocity.x = to_player.x * DEFAULT_INFECTED_MOVEMENT_SPEED as f32;
+        velocity.y = to_player.y * DEFAULT_INFECTED_MOVEMENT_SPEED as f32;
     }
 }
 
@@ -119,14 +119,15 @@ impl<'w, 's> ClosestTarget<'w, 's> {
 // #3 le vecteur que ca donne après la rotation j'ai 0 idée c'est quoi, mais quand
 // on multiplie par la distance et qu'on normalise, le point va être alignée comme
 // voulu dans le range du spread
-pub fn define_spread(origin: Vec2, direction: Vec2, spread: f32) -> Vec2 {
-    if spread <= 0. {
+pub fn define_spread(origin: Vec2, direction: Vec2, spread: u32) -> Vec2 {
+    if spread == 0 {
         return direction;
     }
     let mut rng = rand::thread_rng();
 
     //determine deviation from target using a bell curve type distribution
-    let deviation = rng.gen_range(0.0..spread) + rng.gen_range(0.0..spread) - spread;
+    let deviation = (rng.gen_range(0..spread) + rng.gen_range(0..spread)) as i32 - spread as i32;
+    let deviation = deviation as f32;
 
     //rotate the target vector by the deviation
     //                                                  #2                            #1

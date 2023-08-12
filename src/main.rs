@@ -23,10 +23,11 @@ use leafwing_input_manager::prelude::*;
 use map::define_space;
 use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
+use player::action::{move_player, swap_player_aim};
 use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
-    move_player, spawner::*, swap_player_aim, update_player_rifle_cooldown,
-    update_player_shotgun_cooldown, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
+    spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
+    PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
 use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
 use projectile::{handle_projectile_collision, spawner::*};
@@ -42,7 +43,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
-        .insert_resource(SubstepCount(2))
+        .insert_resource(SubstepCount(3))
         .init_resource::<UiState>()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
@@ -77,7 +78,6 @@ fn main() {
         .add_systems(
             Update,
             (
-                //move_projectile,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
@@ -86,20 +86,20 @@ fn main() {
                 apply_damage,
                 manage_waves,
                 move_player,
-                swap_player_aim,
+                //swap_player_aim,
                 fire_rifle,
                 fire_shotgun,
                 target_enemy,
-                //move_shotgun_projectile2,
                 move_shotgun_projectile,
                 move_rifle_projectile,
-                //debug############################################
-                //move_projectile_to_target,
+                //debug egui ############################################
                 update_player_stats,
                 update_player_shotgun_cooldown,
                 update_player_rifle_cooldown,
                 toggle_shotgun,
                 toggle_rifle,
+                //debug guizmo ############################################
+                //move_projectile_to_target,
                 //draw_collider,
                 //draw_antispawn_zone,
                 //draw_player_target_line,

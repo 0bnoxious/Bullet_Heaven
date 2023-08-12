@@ -6,7 +6,6 @@ use crate::{
     global::{random_direction, AimType},
     player::Player,
     targeting::{ClosestTarget, HasTarget},
-    weapon::shotgun::Shotgun,
 };
 
 use super::{

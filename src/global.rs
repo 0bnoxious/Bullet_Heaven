@@ -7,8 +7,8 @@ use crate::projectile::Damage;
 #[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,
-    pub movement_speed: f32,
-    pub attack_speed: f32,
+    pub movement_speed: u32,
+    pub attack_speed: u32,
     pub defense: i32,
     pub damage: i32,
 }
@@ -16,8 +16,8 @@ pub struct Stats {
 pub const DEFAULT_HP: i32 = 1;
 pub const DEFAULT_DEFENSE: i32 = 0;
 pub const DEFAULT_DAMAGE: i32 = 0;
-pub const DEFAULT_ATTACK_SPEED: f32 = 0.;
-pub const DEFAULT_MOVEMENT_SPEED: f32 = 10.;
+pub const DEFAULT_ATTACK_SPEED: u32 = 0;
+pub const DEFAULT_MOVEMENT_SPEED: u32 = 10;
 
 impl Default for Stats {
     fn default() -> Self {

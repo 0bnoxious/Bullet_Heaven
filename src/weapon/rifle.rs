@@ -11,26 +11,23 @@ use crate::{
     targeting::{define_spread, HasTarget},
 };
 
-const DEFAULT_RIFLE_SPREAD: f32 = 15.;
-const DEFAULT_RIFLE_DAMAGE: f64 = 1.;
-const DEFAULT_RIFLE_FIRE_RATE: f64 = 1000.;
-const DEFAULT_RIFLE_RANGE: f64 = 100.;
+const DEFAULT_RIFLE_SPREAD: u32 = 15;
+const DEFAULT_RIFLE_DAMAGE: u32 = 1;
+const DEFAULT_RIFLE_COOLDOWN: u32 = 1000;
 
 #[derive(Component)]
 pub struct Rifle {
-    pub spread: f32,
-    pub damage: f64,
-    pub fire_rate: f64,
-    pub range: f64,
+    pub spread: u32,
+    pub damage: u32,
+    pub cooldown: u32,
 }
 
 impl Default for Rifle {
     fn default() -> Self {
         Self {
             spread: DEFAULT_RIFLE_SPREAD,
-            range: DEFAULT_RIFLE_RANGE,
             damage: DEFAULT_RIFLE_DAMAGE,
-            fire_rate: DEFAULT_RIFLE_FIRE_RATE,
+            cooldown: DEFAULT_RIFLE_COOLDOWN,
         }
     }
 }
@@ -44,7 +41,7 @@ impl Default for RifleCoolDown {
     fn default() -> Self {
         Self {
             timer: Timer::new(
-                Duration::from_millis(DEFAULT_RIFLE_FIRE_RATE as u64),
+                Duration::from_millis(DEFAULT_RIFLE_COOLDOWN as u64),
                 TimerMode::Repeating,
             ),
         }
@@ -79,9 +76,9 @@ pub fn fire_rifle(
     time: Res<Time>,
 ) {
     if !rifle_cooldown_query.is_empty() {
-        let mut attack_timer = rifle_cooldown_query.get_single_mut().unwrap();
-        attack_timer.timer.tick(time.delta());
-        if !infected_query.is_empty() && attack_timer.timer.finished() {
+        let mut cooldown_timer = rifle_cooldown_query.get_single_mut().unwrap();
+        cooldown_timer.timer.tick(time.delta());
+        if !infected_query.is_empty() && cooldown_timer.timer.finished() {
             for (player_has_target, player_position, rifle) in &mut player_rifle_target_query {
                 let spread = define_spread(
                     player_position.0,

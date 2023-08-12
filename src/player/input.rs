@@ -4,17 +4,15 @@ use leafwing_input_manager::{errors::NearlySingularConversion, orientation::Dire
 
 use crate::global::AimType;
 
-use super::player_spawner::PlayerBundle;
+use super::spawner::PlayerBundle;
 use super::Player;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
-    // Movement
     Up,
     Down,
     Left,
     Right,
-    // Abilities
     Ability1,
     Ability2,
     Ability3,

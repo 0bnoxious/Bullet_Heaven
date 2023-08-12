@@ -4,17 +4,17 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::global::AimType;
 use crate::global::*;
 
-use super::{player_input::PlayerAction, AttackTimer, Player, ATTACK_SPEED, PLAYER_SIZE};
+use super::{
+    input::PlayerAction, AttackTimer, Player, DEFAULT_PLAYER_ATTACK_SPEED, DEFAULT_PLAYER_SIZE,
+};
 
 // must be added to the player entity
 #[derive(Bundle)]
 pub struct PlayerBundle {
     player: Player,
     input_manager: InputManagerBundle<PlayerAction>,
-    aim_type: AimType,
 }
 
 pub fn spawn_player(mut commands: Commands) {
@@ -25,26 +25,30 @@ pub fn spawn_player(mut commands: Commands) {
                 input_map: PlayerBundle::player_input_map(),
                 ..default()
             },
-            aim_type: AimType::Closest,
         },
         SpriteBundle {
             sprite: Sprite {
                 color: Color::BLUE,
                 custom_size: (Some(Vec2 {
-                    x: PLAYER_SIZE,
-                    y: PLAYER_SIZE,
+                    x: DEFAULT_PLAYER_SIZE as f32,
+                    y: DEFAULT_PLAYER_SIZE as f32,
                 })),
                 ..default()
             },
             transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
             ..default()
         },
+        Stats::default(),
         RigidBody::Kinematic,
         Position(Vec2::new(0., 0.)),
-        Collider::cuboid(PLAYER_SIZE, PLAYER_SIZE),
+        Collider::cuboid(DEFAULT_PLAYER_SIZE as f32, DEFAULT_PLAYER_SIZE as f32),
         CollisionLayers::new([Layer::Player], [Layer::Person]),
         AttackTimer {
-            timer: Timer::new(Duration::from_millis(ATTACK_SPEED), TimerMode::Repeating),
+            timer: Timer::new(
+                Duration::from_millis(DEFAULT_PLAYER_ATTACK_SPEED as u64),
+                TimerMode::Repeating,
+            ),
         },
+        Name::new("Player"),
     ));
 }

@@ -4,28 +4,38 @@ pub mod map;
 pub mod mob;
 pub mod player;
 pub mod projectile;
-
-//debug
-//use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-//use debug::draw_antispawn_zone;
+pub mod targeting;
+pub mod weapon;
 
 use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
+//use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
+use debug::egui::{
+    initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_enemy_count,
+    update_player_rifle_stats, update_player_shotgun_stats, update_player_stats, update_wave_timer,
+    UiState,
+};
+//use debug::gizmo::draw_weapon_spread_lines;
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
-use map::wave::{manage_waves, spawn_waves_manager};
+use map::wave::{manage_waves, spawn_waves_manager, WaveEnemyCountChange, WaveTimerChange};
 use mob::spawner::SpawnTimer;
-use mob::{infected::*, RandomDirectionTimer};
-use player::player_input::{
-    player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk,
+use player::action::move_player;
+use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
+use player::{
+    spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
+    PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
-use player::{move_player, player_attack, player_spawner::*, swap_player_aim};
-use projectile::{handle_projectile_collision, move_projectile, projectile_spawner::*};
+use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
+use projectile::{handle_projectile_collision, spawner::*};
 use std::time::Duration;
+use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
+use weapon::rifle::fire_rifle;
+use weapon::shotgun::fire_shotgun;
 
 fn main() {
     App::new()
@@ -34,7 +44,8 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
         ))*/
-        .insert_resource(SubstepCount(6))
+        .insert_resource(SubstepCount(3))
+        .init_resource::<UiState>()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -53,35 +64,64 @@ fn main() {
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
+            //EguiPlugin,
         ))
         .add_systems(
             Startup,
-            (setup, spawn_player, define_space, spawn_waves_manager),
+            (
+                setup,
+                spawn_player,
+                define_space,
+                spawn_waves_manager,
+                initialize_uistate,
+            ),
         )
         .add_systems(
             Update,
             (
-                move_projectile,
-                player_attack,
                 update_projectile_lifetime,
                 handle_projectile_collision,
                 target_player,
-                move_to_target,
+                move_mob_to_target,
                 toggle_resolution,
                 apply_damage,
                 manage_waves,
                 move_player,
-                swap_player_aim,
-                //debug
+                //swap_player_aim,
+                fire_rifle,
+                fire_shotgun,
+                target_enemy,
+                move_shotgun_projectile,
+                move_rifle_projectile,
+                //debug egui ############################################
+                update_player_stats,
+                toggle_rifle,
+                update_player_rifle_cooldown,
+                toggle_shotgun,
+                update_player_shotgun_cooldown,
+                //debug guizmo ############################################
+                //move_projectile_to_target,
                 //draw_collider,
                 //draw_antispawn_zone,
+                //draw_player_target_line,
+                //draw_weapon_spread_lines,
             ),
         )
         .add_systems(Update, player_walks)
         .add_systems(Update, player_swaps_aim)
+        .add_systems(Update, ui_example_system)
+        .add_systems(Update, update_player_shotgun_stats)
+        .add_systems(Update, update_player_rifle_stats)
+        .add_systems(Update, update_wave_timer)
+        .add_systems(Update, update_enemy_count)
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
+        .add_event::<PlayerRifleCoolDownChange>()
+        .add_event::<PlayerShotGunCoolDownChange>()
+        .add_event::<WaveTimerChange>()
+        .add_event::<WaveEnemyCountChange>()
         .add_systems(Last, despawn_dead)
+        .register_type::<HasTarget>()
         .run()
 }
 
@@ -94,9 +134,6 @@ struct ResolutionSettings {
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(RandomDirectionTimer {
-        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
-    });
     commands.insert_resource(SpawnTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });

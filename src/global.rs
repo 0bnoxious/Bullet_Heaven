@@ -7,8 +7,8 @@ use crate::projectile::Damage;
 #[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,
-    pub movement_speed: f32,
-    pub attack_speed: f32,
+    pub movement_speed: u32,
+    pub attack_speed: u32,
     pub defense: i32,
     pub damage: i32,
 }
@@ -16,8 +16,8 @@ pub struct Stats {
 pub const DEFAULT_HP: i32 = 1;
 pub const DEFAULT_DEFENSE: i32 = 0;
 pub const DEFAULT_DAMAGE: i32 = 0;
-pub const DEFAULT_ATTACK_SPEED: f32 = 0.;
-pub const DEFAULT_MOVEMENT_SPEED: f32 = 10.;
+pub const DEFAULT_ATTACK_SPEED: u32 = 0;
+pub const DEFAULT_MOVEMENT_SPEED: u32 = 10;
 
 impl Default for Stats {
     fn default() -> Self {
@@ -31,13 +31,11 @@ impl Default for Stats {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub enum AimType {
     Random,
     Closest,
-    HomingClosest,
     //Mouse,
-    //HomingMouse,
 }
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -54,8 +52,7 @@ impl AimType {
         use AimType::*;
         match *self {
             Random => Closest,
-            Closest => HomingClosest,
-            HomingClosest => Random,
+            Closest => Random,
         }
     }
 }
@@ -71,20 +68,15 @@ pub enum Layer {
     Wall,
 }
 
-pub fn random_velocity(rng: &mut ThreadRng) -> Vec3 {
-    let velx = rng.gen_range(-1.0..1.0);
-    let vely = rng.gen_range(-1.0..1.0);
+pub fn random_direction(rng: &mut ThreadRng) -> Vec3 {
+    let x = rng.gen_range(-1.0..1.0);
+    let y = rng.gen_range(-1.0..1.0);
 
-    Vec3::new(velx, vely, 0.)
+    Vec3::new(x, y, 0.)
 }
 
 #[derive(Component)]
 pub struct Dead;
-
-#[derive(Component)]
-pub struct Closest {
-    pub vec3: Vec3,
-}
 
 pub fn apply_damage(
     mut commands: Commands,

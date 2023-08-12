@@ -1,23 +1,26 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
-    global::*, mob::infected::Infected, projectile::projectile_spawner::PlayerProjectileSpawner,
+    global::*,
+    weapon::{
+        rifle::{Rifle, RifleCoolDown},
+        shotgun::{Shotgun, ShotgunCoolDown},
+    },
 };
 
-use self::player_input::{PlayerAimSwap, PlayerWalk};
+pub mod action;
+pub mod input;
+pub mod spawner;
 
-pub mod player_input;
-pub mod player_spawner;
-pub mod weapon;
-
-pub const PLAYER_SIZE: f32 = 10.;
-pub const PLAYER_HHIT_POINTS: f32 = 100.;
-pub const ATTACK_SPEED: u64 = 10;
-pub const BULLETS_PER_TICK: i32 = 1;
-pub const PLAYER_SPEED: f32 = 3.;
-pub const PLAYER_ANTI_MOB_SPAWN_SIZE: f32 = 200.;
-pub const PLAYER_INVULNERABILITY: f64 = 1.;
+pub const DEFAULT_PLAYER_SIZE: u32 = 10;
+pub const DEFAULT_PLAYER_HIT_POINTS: i32 = 100;
+pub const DEFAULT_PLAYER_DEFENSE: i32 = 1;
+pub const DEFAULT_PLAYER_ATTACK_SPEED: u32 = 1000;
+pub const DEFAULT_PLAYER_MOVEMENT_SPEED: u32 = 3;
+pub const DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE: u32 = 200;
+pub const DEFAULT_PLAYER_INVULNERABILITY: u32 = 1;
 
 #[derive(Component)]
 pub struct Player;
@@ -27,40 +30,63 @@ pub struct AttackTimer {
     pub timer: Timer,
 }
 
-pub fn player_attack(
-    time: Res<Time>,
-    mut attack_timer_query: Query<&mut AttackTimer>,
-    infected_query: Query<(), With<Infected>>,
-    mut player_counter: PlayerProjectileSpawner,
+pub fn default_player_stats() -> Stats {
+    Stats {
+        hit_points: DEFAULT_PLAYER_HIT_POINTS,
+        movement_speed: DEFAULT_PLAYER_MOVEMENT_SPEED,
+        attack_speed: DEFAULT_PLAYER_ATTACK_SPEED,
+        defense: DEFAULT_PLAYER_DEFENSE,
+        damage: 1,
+    }
+}
+
+#[derive(Event)]
+pub struct PlayerShotGunCoolDownChange {}
+
+pub fn update_player_shotgun_cooldown(
+    mut commands: Commands,
+    mut player_shotgun_cooldown_change_events: EventReader<PlayerShotGunCoolDownChange>,
+    shotgun_query: Query<&mut Shotgun, With<Player>>,
+    mut timer_query: Query<Entity, (With<ShotgunCoolDown>, With<Player>)>,
 ) {
-    if infected_query.iter().count() > 0 {
-        let mut attack_timer = attack_timer_query.get_single_mut().unwrap();
-        attack_timer.timer.tick(time.delta());
-        if attack_timer.timer.finished() {
-            player_counter.spawn_projectile();
+    for _ in player_shotgun_cooldown_change_events.iter() {
+        for entity in &mut timer_query {
+            for shotgun in shotgun_query.iter() {
+                println!("new shotgun cooldown value {}", shotgun.cooldown);
+                let updated_attack_timer = ShotgunCoolDown {
+                    timer: Timer::new(
+                        Duration::from_millis(shotgun.cooldown as u64),
+                        TimerMode::Repeating,
+                    ),
+                };
+                commands.entity(entity).remove::<ShotgunCoolDown>();
+                commands.entity(entity).insert(updated_attack_timer);
+            }
         }
     }
 }
 
-pub fn move_player(
-    mut events: EventReader<PlayerWalk>,
-    mut query: Query<&mut Position, With<Player>>,
-) {
-    for player_walk_event in events.iter() {
-        let mut player_position = query.single_mut();
-        let direction_vec2: Vec2 = player_walk_event.direction.into();
-        player_position.0 += direction_vec2 * PLAYER_SPEED;
-    }
-}
+#[derive(Event)]
+pub struct PlayerRifleCoolDownChange {}
 
-pub fn swap_player_aim(
-    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
-    mut aim_query: Query<&mut AimType, With<Player>>,
+pub fn update_player_rifle_cooldown(
+    mut commands: Commands,
+    mut player_attack_speed_change_events: EventReader<PlayerRifleCoolDownChange>,
+    rifle_query: Query<&mut Rifle, With<Player>>,
+    mut timer_query: Query<Entity, (With<RifleCoolDown>, With<Player>)>,
 ) {
-    for _ in player_aim_swap_events.iter() {
-        for mut aimtype in &mut aim_query {
-            let next_aim = aimtype.next();
-            *aimtype = next_aim;
+    for _ in player_attack_speed_change_events.iter() {
+        for entity in &mut timer_query {
+            for rifle in rifle_query.iter() {
+                let updated_rifle_timer = RifleCoolDown {
+                    timer: Timer::new(
+                        Duration::from_millis(rifle.cooldown as u64),
+                        TimerMode::Repeating,
+                    ),
+                };
+                commands.entity(entity).remove::<RifleCoolDown>();
+                commands.entity(entity).insert(updated_rifle_timer);
+            }
         }
     }
 }

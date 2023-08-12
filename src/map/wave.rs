@@ -10,23 +10,45 @@ use crate::{
 pub const NUMBER_OF_WAVES: usize = 10;
 pub const MAX_WAVE_MOB_COUNT: u64 = 200;
 pub const TIME_BETWEEN_WAVES: u64 = 1000;
-pub const DELAY_BETWEEN_SPAWN: u64 = 1000;
+pub const DELAY_BETWEEN_SPAWN: u64 = 100;
 
 #[derive(Component)]
 pub struct WaveManager {
-    wave_timer: Timer,
-    spawn_timer: Timer,
-    waves: Vec<Wave>,
-    wave_number: usize,
+    pub wave_timer: Timer,
+    pub spawn_timer: Timer,
+    pub waves: Vec<Wave>,
+    pub current_wave_number: usize,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug, Clone)]
 pub struct Wave {
     //wave_number: i32,
     max_mob_count: u64,
     mobs_types: Vec<MobType>,
     //kill_count: i32,
 }
+
+#[derive(Event)]
+pub struct WaveTimerChange {
+    pub new_wave_cooldown: u32,
+}
+
+/*pub fn wave_timer_change(
+    mut wave_timer_change_events: EventReader<WaveTimerChange>,
+    mut wave_manager_query: Query<&mut WaveManager>,
+) {
+    println!("ALLO");
+    if !wave_timer_change_events.is_empty() {
+        for event in wave_timer_change_events.iter() {
+            for mut wave_manager in &mut wave_manager_query {
+                wave_manager.wave_timer = Timer::new(
+                    Duration::from_millis(event.cooldown as u64),
+                    TimerMode::Repeating,
+                )
+            }
+        }
+    }
+}*/
 
 pub fn spawn_waves_manager(mut commands: Commands) {
     commands.spawn(WaveManager {
@@ -39,7 +61,7 @@ pub fn spawn_waves_manager(mut commands: Commands) {
             TimerMode::Repeating,
         ),
         waves: build_waves(),
-        wave_number: 0,
+        current_wave_number: 0,
     });
 }
 
@@ -54,19 +76,19 @@ pub fn manage_waves(
 
     wave_manager.wave_timer.tick(time.delta());
     if wave_manager.wave_timer.just_finished() {
-        wave_manager.wave_number += 1;
-        if wave_manager.wave_number >= NUMBER_OF_WAVES {
-            wave_manager.wave_number = 0;
+        wave_manager.current_wave_number += 1;
+        if wave_manager.current_wave_number >= NUMBER_OF_WAVES {
+            wave_manager.current_wave_number = 0;
         }
     }
 
     wave_manager.spawn_timer.tick(time.delta());
     if wave_manager.spawn_timer.just_finished() {
-        let missing_mobs = wave_manager.waves[wave_manager.wave_number].max_mob_count
+        let missing_mobs = wave_manager.waves[wave_manager.current_wave_number].max_mob_count
             - infected_query.iter().count() as u64;
 
         mob_spawner.spawn_mob(
-            wave_manager.waves[wave_manager.wave_number].mobs_types[0],
+            wave_manager.waves[wave_manager.current_wave_number].mobs_types[0],
             missing_mobs,
         );
     }

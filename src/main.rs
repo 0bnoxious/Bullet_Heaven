@@ -15,7 +15,7 @@ use bevy_xpbd_2d::prelude::*;
 
 use debug::egui::{
     initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_player_rifle_stats,
-    update_player_shotgun_stats, update_player_stats, UiState,
+    update_player_shotgun_stats, update_player_stats, update_wave_timer, UiState,
 };
 use debug::gizmo::draw_weapon_spread_lines;
 use global::*;
@@ -23,7 +23,7 @@ use leafwing_input_manager::prelude::*;
 use map::define_space;
 use map::wave::{manage_waves, spawn_waves_manager};
 use mob::spawner::SpawnTimer;
-use player::action::{move_player, swap_player_aim};
+use player::action::move_player;
 use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
     spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
@@ -94,10 +94,11 @@ fn main() {
                 move_rifle_projectile,
                 //debug egui ############################################
                 update_player_stats,
-                update_player_shotgun_cooldown,
+                toggle_rifle,
                 update_player_rifle_cooldown,
                 toggle_shotgun,
-                toggle_rifle,
+                update_player_shotgun_cooldown,
+                update_wave_timer,
                 //debug guizmo ############################################
                 //move_projectile_to_target,
                 //draw_collider,
@@ -111,6 +112,7 @@ fn main() {
         .add_systems(Update, ui_example_system)
         .add_systems(Update, update_player_shotgun_stats)
         .add_systems(Update, update_player_rifle_stats)
+        //.add_systems(Update, wave_timer_change)
         .add_event::<PlayerWalk>()
         .add_event::<PlayerAimSwap>()
         .add_event::<PlayerShotGunCoolDownChange>()

@@ -5,6 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::{
     global::Stats,
+    map::wave::{WaveManager, WaveTimerChange},
     player::{Player, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange},
     weapon::{
         rifle::{Rifle, RifleBundle, RifleCoolDown},
@@ -21,6 +22,8 @@ pub struct UiState {
     player_shotgun_cooldown: u32,
     player_shotgun_bullet_count: u32,
     player_shotgun_spread: u32,
+    wave_timer_cooldown: u32,
+    enemy_spawn_cooldown: u32,
 }
 
 pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
@@ -31,6 +34,8 @@ pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
     ui_state.player_shotgun_cooldown = 10;
     ui_state.player_shotgun_bullet_count = 8;
     ui_state.player_shotgun_spread = 15;
+    ui_state.wave_timer_cooldown = 1000;
+    ui_state.enemy_spawn_cooldown = 500;
 }
 
 pub fn ui_example_system(
@@ -38,6 +43,7 @@ pub fn ui_example_system(
     mut contexts: EguiContexts,
     mut rifle_cooldown_event_writer: EventWriter<PlayerRifleCoolDownChange>,
     mut shotgun_cooldown_event_writer: EventWriter<PlayerShotGunCoolDownChange>,
+    mut wave_timer_event_writer: EventWriter<WaveTimerChange>,
 ) {
     let ctx = contexts.ctx_mut();
 
@@ -131,7 +137,7 @@ pub fn ui_example_system(
                 }
             });
             // Shotgun Bullets
-            ui.allocate_space(egui::Vec2::new(1.0, 5.0));
+            ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.horizontal(|ui| {
                 ui.label(format!(
                     "{}{}",
@@ -145,6 +151,7 @@ pub fn ui_example_system(
                 }
             });
             // Shotgun Spread
+            ui.allocate_space(egui::Vec2::new(1.0, 5.0));
             ui.label("Spread");
             ui.horizontal(|ui| {
                 ui.add(egui::Slider::new(
@@ -163,6 +170,48 @@ pub fn ui_example_system(
                     ui_state.player_shotgun_spread += 3;
                 }
             });
+
+            ui.allocate_space(egui::Vec2::new(1.0, 30.0));
+            ui.horizontal(|ui| {
+                ui.heading("Enemy Waves: ");
+            });
+
+            // Wave timer
+            ui.label("Wave timer");
+            ui.horizontal(|ui| {
+                if ui
+                    .add(
+                        egui::Slider::new(&mut ui_state.wave_timer_cooldown, 100..=5000)
+                            .logarithmic(true),
+                    )
+                    .changed()
+                {
+                    wave_timer_event_writer.send(WaveTimerChange {
+                        new_wave_cooldown: ui_state.wave_timer_cooldown,
+                    });
+                }
+
+                if ui.button("-1s").clicked() {
+                    let temp_cooldown = ui_state.wave_timer_cooldown as i32 - 1000;
+                    if temp_cooldown < 0 {
+                        ui_state.wave_timer_cooldown = 10;
+                    } else {
+                        ui_state.wave_timer_cooldown = temp_cooldown as u32;
+                    }
+
+                    wave_timer_event_writer.send(WaveTimerChange {
+                        new_wave_cooldown: ui_state.wave_timer_cooldown,
+                    });
+                }
+                if ui.button("+1s").clicked() {
+                    ui_state.wave_timer_cooldown += 1000;
+                    wave_timer_event_writer.send(WaveTimerChange {
+                        new_wave_cooldown: ui_state.wave_timer_cooldown,
+                    });
+                }
+            });
+
+            // Enemy Count
         });
 }
 
@@ -266,3 +315,36 @@ pub fn update_player_shotgun_stats(
         player_shotgun.spread = ui_state.player_shotgun_spread;
     }
 }
+
+pub fn update_wave_timer(
+    mut wave_timer_change_events: EventReader<WaveTimerChange>,
+    mut wave_manager_query: Query<&mut WaveManager>,
+) {
+    for event in wave_timer_change_events.iter() {
+        for mut wave_manager in &mut wave_manager_query {
+            wave_manager.wave_timer = Timer::new(
+                Duration::from_millis(event.new_wave_cooldown as u64),
+                TimerMode::Repeating,
+            );
+            let skoissa = wave_manager.waves[wave_manager.current_wave_number].clone();
+            println!("Current wave! : {skoissa:?}")
+        }
+    }
+}
+
+/*pub fn wave_timer_change(
+    mut wave_timer_change_events: EventReader<WaveTimerChange>,
+    mut wave_manager_query: Query<&mut WaveManager>,
+) {
+    println!("ALLO");
+    if !wave_timer_change_events.is_empty() {
+        for event in wave_timer_change_events.iter() {
+            for mut wave_manager in &mut wave_manager_query {
+                wave_manager.wave_timer = Timer::new(
+                    Duration::from_millis(event.cooldown as u64),
+                    TimerMode::Repeating,
+                )
+            }
+        }
+    }
+}*/

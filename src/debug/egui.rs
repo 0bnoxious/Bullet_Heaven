@@ -15,11 +15,12 @@ use crate::{
 #[derive(Default, Resource)]
 pub struct UiState {
     player_movement_speed: u32,
+    is_rifle_equiped: bool,
+    player_rifle_cooldown: u32,
     is_shotgun_equiped: bool,
     player_shotgun_cooldown: u32,
     player_shotgun_bullet_count: u32,
-    is_rifle_equiped: bool,
-    player_rifle_cooldown: u32,
+    player_shotgun_spread: u32,
 }
 
 pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
@@ -29,12 +30,12 @@ pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
     ui_state.is_shotgun_equiped = true;
     ui_state.player_shotgun_cooldown = 10;
     ui_state.player_shotgun_bullet_count = 8;
+    ui_state.player_shotgun_spread = 15;
 }
 
 pub fn ui_example_system(
     mut ui_state: ResMut<UiState>,
     mut contexts: EguiContexts,
-    //mut player_movement_speed_event_writer: EventWriter<PlayerMovementSpeedChange>,
     mut rifle_cooldown_event_writer: EventWriter<PlayerRifleCoolDownChange>,
     mut shotgun_cooldown_event_writer: EventWriter<PlayerShotGunCoolDownChange>,
 ) {
@@ -47,6 +48,7 @@ pub fn ui_example_system(
                 ui.heading("Player Stats: ");
             });
 
+            // Player Movement Speed
             ui.label("Movement Speed");
             ui.horizontal(|ui| {
                 ui.add(egui::Slider::new(
@@ -72,6 +74,7 @@ pub fn ui_example_system(
 
             ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.checkbox(&mut ui_state.is_rifle_equiped, "Rifle");
+            // Rifle Cooldown
             ui.label("Cooldown");
             ui.horizontal(|ui| {
                 if ui
@@ -98,11 +101,9 @@ pub fn ui_example_system(
                 }
             });
 
+            ui.allocate_space(egui::Vec2::new(1.0, 20.0));
             ui.checkbox(&mut ui_state.is_shotgun_equiped, "Shotgun");
-            let bullet_label = format!(
-                "{}{}",
-                "shotgun bullets: ", ui_state.player_shotgun_bullet_count
-            );
+            // Shotgun Cooldown
             ui.label("Cooldown");
             ui.horizontal(|ui| {
                 if ui
@@ -129,15 +130,37 @@ pub fn ui_example_system(
                     shotgun_cooldown_event_writer.send(PlayerShotGunCoolDownChange {});
                 }
             });
-
-            ui.allocate_space(egui::Vec2::new(1.0, 10.0));
+            // Shotgun Bullets
+            ui.allocate_space(egui::Vec2::new(1.0, 5.0));
             ui.horizontal(|ui| {
-                ui.label(bullet_label);
+                ui.label(format!(
+                    "{}{}",
+                    "Shotgun bullets: ", ui_state.player_shotgun_bullet_count
+                ));
                 if ui.button("+1 Bullet").clicked() {
                     ui_state.player_shotgun_bullet_count += 1;
                 }
                 if ui.button("-1 Bulllet").clicked() {
                     ui_state.player_shotgun_bullet_count -= 1;
+                }
+            });
+            // Shotgun Spread
+            ui.label("Spread");
+            ui.horizontal(|ui| {
+                ui.add(egui::Slider::new(
+                    &mut ui_state.player_shotgun_spread,
+                    1..=90,
+                ));
+                if ui.button("-3°").clicked() {
+                    let temp_spread = ui_state.player_shotgun_spread as i32 - 3;
+                    if temp_spread < 0 {
+                        ui_state.player_shotgun_spread = 1;
+                    } else {
+                        ui_state.player_shotgun_spread = temp_spread as u32;
+                    }
+                }
+                if ui.button("+3°").clicked() {
+                    ui_state.player_shotgun_spread += 3;
                 }
             });
         });
@@ -155,12 +178,12 @@ pub fn toggle_rifle(
                 println!("Adding Rifle!");
                 commands.entity(player_entity).insert(RifleBundle {
                     rifle: Rifle {
-                        cooldown: ui_state.player_rifle_cooldown,
+                        cooldown: ui_state.player_shotgun_spread,
                         ..default()
                     },
                     cooldown: RifleCoolDown {
                         timer: Timer::new(
-                            Duration::from_millis(ui_state.player_rifle_cooldown as u64),
+                            Duration::from_millis(ui_state.player_shotgun_spread as u64),
                             TimerMode::Repeating,
                         ),
                     },
@@ -240,5 +263,6 @@ pub fn update_player_shotgun_stats(
     for mut player_shotgun in &mut player_shotgun_query {
         player_shotgun.cooldown = ui_state.player_shotgun_cooldown;
         player_shotgun.bullet_count = ui_state.player_shotgun_bullet_count;
+        player_shotgun.spread = ui_state.player_shotgun_spread;
     }
 }

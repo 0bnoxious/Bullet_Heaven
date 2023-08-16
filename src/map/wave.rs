@@ -59,27 +59,29 @@ pub fn manage_waves(
     infected_query: Query<&Infected>,
     time: Res<Time>,
 ) {
-    let mut wave_manager = wave_manager_query.single_mut();
+    if !wave_manager_query.is_empty() {
+        let mut wave_manager = wave_manager_query.single_mut();
 
-    wave_manager.wave_timer.tick(time.delta());
-    if wave_manager.wave_timer.just_finished() {
-        wave_manager.current_wave_number += 1;
-        if wave_manager.current_wave_number >= NUMBER_OF_WAVES {
-            wave_manager.current_wave_number = 0;
+        wave_manager.wave_timer.tick(time.delta());
+        if wave_manager.wave_timer.just_finished() {
+            wave_manager.current_wave_number += 1;
+            if wave_manager.current_wave_number >= NUMBER_OF_WAVES {
+                wave_manager.current_wave_number = 0;
+            }
         }
-    }
 
-    wave_manager.spawn_timer.tick(time.delta());
-    if wave_manager.spawn_timer.just_finished() {
-        let max_enemies =
-            wave_manager.waves[wave_manager.current_wave_number as usize].max_mob_count as i32;
-        let missing_mobs = max_enemies - infected_query.iter().count() as i32;
+        wave_manager.spawn_timer.tick(time.delta());
+        if wave_manager.spawn_timer.just_finished() {
+            let max_enemies =
+                wave_manager.waves[wave_manager.current_wave_number as usize].max_mob_count as i32;
+            let missing_mobs = max_enemies - infected_query.iter().count() as i32;
 
-        if missing_mobs > 0 {
-            mob_spawner.spawn_mob(
-                wave_manager.waves[wave_manager.current_wave_number as usize].mobs_type,
-                missing_mobs as u64,
-            );
+            if missing_mobs > 0 {
+                mob_spawner.spawn_mob(
+                    wave_manager.waves[wave_manager.current_wave_number as usize].mobs_type,
+                    missing_mobs as u64,
+                );
+            }
         }
     }
 }

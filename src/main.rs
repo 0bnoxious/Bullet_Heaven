@@ -89,7 +89,7 @@ fn main() {
                 move_player,
                 //swap_player_aim,
                 fire_rifle,
-                fire_shotgun,
+                //fire_shotgun,
                 target_enemy,
                 move_shotgun_projectile,
                 move_rifle_projectile,

@@ -1,16 +1,20 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
 pub const DEFAULT_INFECTED_HP: i32 = 3;
 pub const DEFAULT_INFECTED_DEFENSE: i32 = 0;
 pub const DEFAULT_INFECTED_DAMAGE: i32 = 1;
-pub const DEFAULT_INFECTED_ATTACK_SPEED: u32 = 1;
+pub const DEFAULT_INFECTED_ATTACK_SPEED: u32 = 500;
 pub const DEFAULT_INFECTED_MOVEMENT_SPEED: u32 = 200;
 
 //pub const DEFAULT_INFECTION_ODDS: i32 = 1; // 1 in x chance to infect
 pub const DEFAULT_INFECTED_COLOR: Color = Color::RED;
 pub const DEFAULT_INFECTED_RANGED_COLOR: Color = Color::WHITE;
 pub const DEFAULT_INFECTED_SIZE: f32 = 10.;
+
+use crate::player::AttackTimer;
 
 use super::*;
 
@@ -41,6 +45,7 @@ pub struct InfectedBundle {
     pub axes: LockedAxes,
     pub damage: Damage,
     pub name: Name,
+    pub attack_timer: AttackTimer,
 }
 
 #[derive(Bundle)]
@@ -54,6 +59,7 @@ pub struct InfectedRangedBundle {
     pub axes: LockedAxes,
     pub damage: Damage,
     pub name: Name,
+    pub attack_timer: AttackTimer,
 }
 
 impl Default for InfectedBundle {
@@ -85,6 +91,12 @@ impl Default for InfectedBundle {
                 ],
             ),
             stats: default_infected_stats(),
+            attack_timer: AttackTimer {
+                timer: Timer::new(
+                    Duration::from_millis(DEFAULT_INFECTED_ATTACK_SPEED as u64),
+                    TimerMode::Repeating,
+                ),
+            },
             damage: Damage { instances: dmg_vec },
             collider: Collider::cuboid(DEFAULT_INFECTED_SIZE, DEFAULT_INFECTED_SIZE),
             rigid_body: RigidBody::Dynamic,
@@ -123,6 +135,12 @@ impl Default for InfectedRangedBundle {
                 ],
             ),
             stats: default_infected_stats(),
+            attack_timer: AttackTimer {
+                timer: Timer::new(
+                    Duration::from_millis(DEFAULT_INFECTED_ATTACK_SPEED as u64),
+                    TimerMode::Repeating,
+                ),
+            },
             damage: Damage { instances: dmg_vec },
             collider: Collider::cuboid(DEFAULT_INFECTED_SIZE, DEFAULT_INFECTED_SIZE),
             rigid_body: RigidBody::Dynamic,

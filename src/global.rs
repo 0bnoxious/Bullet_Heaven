@@ -78,7 +78,7 @@ pub fn random_direction(rng: &mut ThreadRng) -> Vec3 {
 #[derive(Component)]
 pub struct Dead;
 
-pub fn apply_damage(
+pub fn resolve_damage(
     mut commands: Commands,
     mut damage_query: Query<(Entity, &mut Damage, &mut Stats)>,
 ) {
@@ -88,6 +88,7 @@ pub fn apply_damage(
         damage.instances.clear();
 
         if stats.hit_points <= 0 {
+            println!("Entity : {entity:?} is dead!");
             commands.entity(entity).insert(Dead);
         }
     }

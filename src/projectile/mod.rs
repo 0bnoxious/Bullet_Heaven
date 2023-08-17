@@ -17,7 +17,7 @@ pub struct Projectile;
 #[derive(Component, Debug)]
 pub struct Homing;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Damage {
     pub instances: Vec<i32>,
 }

@@ -1,9 +1,12 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::CollisionStarted;
 
 use crate::{
     global::*,
+    mob::infected::Infected,
+    projectile::Damage,
     weapon::{
         rifle::{Rifle, RifleCoolDown},
         shotgun::{Shotgun, ShotgunCoolDown},
@@ -87,6 +90,33 @@ pub fn update_player_rifle_cooldown(
                 commands.entity(entity).remove::<RifleCoolDown>();
                 commands.entity(entity).insert(updated_rifle_timer);
             }
+        }
+    }
+}
+
+pub fn player_damage(
+    mut is_player_damage: Query<&mut Damage, With<Player>>,
+    is_infected_stats: Query<&Stats, With<Infected>>,
+    mut events: EventReader<CollisionStarted>,
+) {
+    let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
+        if is_infected_stats.get(*entity_a).is_ok() {
+            let infected_dmg_stat = is_infected_stats.get(*entity_a).unwrap().damage;
+            if is_player_damage.get(*entity_b).is_ok() {
+                for mut player_damage in &mut is_player_damage {
+                    player_damage.instances.push(infected_dmg_stat);
+                    //println!("taking damage! : {}", infected_dmg_stat);
+                }
+                return true;
+            }
+        }
+        false
+    };
+
+    // if entity a is not a player, flip'em.
+    for CollisionStarted(entity_a, entity_b) in events.iter() {
+        if !collide(entity_a, entity_b) {
+            collide(entity_b, entity_a);
         }
     }
 }

@@ -27,7 +27,7 @@ use mob::spawner::SpawnTimer;
 use player::action::move_player;
 use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
-    spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
+    player_damage, spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
     PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
 use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
@@ -84,7 +84,7 @@ fn main() {
                 target_player,
                 move_mob_to_target,
                 toggle_resolution,
-                apply_damage,
+                resolve_damage,
                 manage_waves,
                 move_player,
                 //swap_player_aim,
@@ -93,6 +93,7 @@ fn main() {
                 target_enemy,
                 move_shotgun_projectile,
                 move_rifle_projectile,
+                player_damage,
                 //debug egui ############################################
                 update_player_stats,
                 toggle_rifle,

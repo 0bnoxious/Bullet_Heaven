@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::LinearVelocity;
 
-use crate::{projectile::Projectile, targeting::HasTarget};
+use crate::{global::Stats, player::Player, projectile::Projectile, targeting::HasTarget};
 
 pub mod egui;
 pub mod gizmo;
@@ -17,5 +17,11 @@ pub fn move_projectile_to_target(
                 velocity.0 = target.target_position * 500.
             }
         }
+    }
+}
+
+pub fn log_player_hitpoint(player_stats_query: Query<&Stats, With<Player>>) {
+    for player_stats in player_stats_query.iter() {
+        println!("Player HP: {}", player_stats.hit_points);
     }
 }

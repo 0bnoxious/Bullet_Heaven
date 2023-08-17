@@ -55,3 +55,43 @@ pub fn spawn_player(mut commands: Commands) {
         },
     ));
 }
+
+pub fn respawn_player(mut commands: Commands, player_query: Query<(&Player, With<Dead>)>) {
+    if !player_query.is_empty() {
+        println!("Respawning dead player");
+        let dmg_vec: Vec<i32> = Vec::new();
+        commands.spawn((
+            PlayerBundle {
+                player: Player,
+                input_manager: InputManagerBundle {
+                    input_map: PlayerBundle::player_input_map(),
+                    ..default()
+                },
+                damage: Damage { instances: dmg_vec },
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::BLUE,
+                    custom_size: (Some(Vec2 {
+                        x: DEFAULT_PLAYER_SIZE as f32,
+                        y: DEFAULT_PLAYER_SIZE as f32,
+                    })),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                ..default()
+            },
+            default_player_stats(),
+            RigidBody::Kinematic,
+            Position(Vec2::new(0., 0.)),
+            Collider::cuboid(DEFAULT_PLAYER_SIZE as f32, DEFAULT_PLAYER_SIZE as f32),
+            CollisionLayers::new([Layer::Player], [Layer::Person, Layer::Infected]),
+            AttackTimer {
+                timer: Timer::new(
+                    Duration::from_millis(DEFAULT_PLAYER_ATTACK_SPEED as u64),
+                    TimerMode::Repeating,
+                ),
+            },
+        ));
+    }
+}

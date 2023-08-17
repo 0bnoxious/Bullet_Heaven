@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::CollisionStarted;
 
 use crate::global::*;
-use crate::player::Player;
+use crate::player::{AttackTimer, Player};
 use crate::projectile::Damage;
 
 use self::infected::*;
@@ -43,17 +43,25 @@ pub struct RandomDirectionTimer {
 pub fn attack_player(
     mut is_player_damage: Query<&mut Damage, With<Player>>,
     is_infected_stats: Query<&Stats, With<Infected>>,
+    mut is_infected_attack_timer: Query<&mut AttackTimer, With<Infected>>,
     mut events: EventReader<CollisionStarted>,
+    time: Res<Time>,
 ) {
     let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
         if is_infected_stats.get(*entity_a).is_ok() {
-            let infected_dmg_stat = is_infected_stats.get(*entity_a).unwrap().damage;
-            if is_player_damage.get(*entity_b).is_ok() {
-                for mut player_damage in &mut is_player_damage {
-                    player_damage.instances.push(infected_dmg_stat);
-                    println!("taking damage! : {}", infected_dmg_stat);
+            let mut infected_attack_timer = is_infected_attack_timer.get_mut(*entity_a).unwrap();
+            infected_attack_timer.timer.tick(time.delta());
+
+            //infected_attack_timer.timer.tick(time.delta());
+            if infected_attack_timer.timer.finished() {
+                let infected_dmg_stat = is_infected_stats.get(*entity_a).unwrap().damage;
+                if is_player_damage.get(*entity_b).is_ok() {
+                    for mut player_damage in &mut is_player_damage {
+                        player_damage.instances.push(infected_dmg_stat);
+                        println!("taking damage! : {}", infected_dmg_stat);
+                    }
+                    return true;
                 }
-                return true;
             }
         }
         false

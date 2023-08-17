@@ -18,16 +18,18 @@ use debug::egui::{
     update_player_rifle_stats, update_player_shotgun_stats, update_player_stats, update_wave_timer,
     UiState,
 };
+use debug::log_player_hitpoint;
 //use debug::gizmo::draw_weapon_spread_lines;
 use global::*;
 use leafwing_input_manager::prelude::*;
 use map::define_space;
 use map::wave::{manage_waves, spawn_waves_manager, WaveEnemyCountChange, WaveTimerChange};
+use mob::attack_player;
 use mob::spawner::SpawnTimer;
 use player::action::move_player;
 use player::input::{player_swaps_aim, player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
 use player::{
-    player_damage, spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
+    spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
     PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
 };
 use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
@@ -84,22 +86,23 @@ fn main() {
                 target_player,
                 move_mob_to_target,
                 toggle_resolution,
-                resolve_damage,
+                resolve_damage.before(respawn_player),
                 manage_waves,
                 move_player,
                 //swap_player_aim,
                 fire_rifle,
-                //fire_shotgun,
+                fire_shotgun,
                 target_enemy,
                 move_shotgun_projectile,
                 move_rifle_projectile,
-                player_damage,
+                attack_player,
                 //debug egui ############################################
                 update_player_stats,
                 toggle_rifle,
                 update_player_rifle_cooldown,
                 toggle_shotgun,
                 update_player_shotgun_cooldown,
+                log_player_hitpoint,
                 //debug guizmo ############################################
                 //move_projectile_to_target,
                 //draw_collider,
@@ -109,7 +112,7 @@ fn main() {
             ),
         )
         .add_systems(Update, player_walks)
-        .add_systems(Update, player_swaps_aim)
+        //.add_systems(Update, player_swaps_aim)
         .add_systems(Update, ui_example_system)
         .add_systems(Update, update_player_shotgun_stats)
         .add_systems(Update, update_player_rifle_stats)

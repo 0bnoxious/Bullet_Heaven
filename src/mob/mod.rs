@@ -47,13 +47,16 @@ pub fn attack_player(
     mut events: EventReader<CollisionStarted>,
     time: Res<Time>,
 ) {
+    for mut infected_attack_timer in &mut is_infected_attack_timer {
+        infected_attack_timer.timer.tick(time.delta());
+    }
     let mut collide = |entity_a: &Entity, entity_b: &Entity| -> bool {
         if is_infected_stats.get(*entity_a).is_ok() {
-            let mut infected_attack_timer = is_infected_attack_timer.get_mut(*entity_a).unwrap();
-            infected_attack_timer.timer.tick(time.delta());
+            let colliding_infected_attack_timer =
+                is_infected_attack_timer.get_mut(*entity_a).unwrap();
 
             //infected_attack_timer.timer.tick(time.delta());
-            if infected_attack_timer.timer.finished() {
+            if colliding_infected_attack_timer.timer.finished() {
                 let infected_dmg_stat = is_infected_stats.get(*entity_a).unwrap().damage;
                 if is_player_damage.get(*entity_b).is_ok() {
                     for mut player_damage in &mut is_player_damage {

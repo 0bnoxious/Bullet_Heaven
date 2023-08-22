@@ -88,7 +88,7 @@ pub fn resolve_damage(
         damage.instances.clear();
 
         if stats.hit_points <= 0 {
-            println!("Entity : {entity:?} is dead!");
+            //println!("Entity : {entity:?} is dead!");
             commands.entity(entity).insert(Dead);
         }
     }

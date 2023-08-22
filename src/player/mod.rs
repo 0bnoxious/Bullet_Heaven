@@ -1,12 +1,9 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::CollisionStarted;
 
 use crate::{
     global::*,
-    mob::infected::Infected,
-    projectile::Damage,
     weapon::{
         rifle::{Rifle, RifleCoolDown},
         shotgun::{Shotgun, ShotgunCoolDown},
@@ -18,7 +15,7 @@ pub mod input;
 pub mod spawner;
 
 pub const DEFAULT_PLAYER_SIZE: u32 = 10;
-pub const DEFAULT_PLAYER_HIT_POINTS: i32 = 6;
+pub const DEFAULT_PLAYER_HIT_POINTS: i32 = 999999999;
 pub const DEFAULT_PLAYER_DEFENSE: i32 = 1;
 pub const DEFAULT_PLAYER_ATTACK_SPEED: u32 = 1000;
 pub const DEFAULT_PLAYER_MOVEMENT_SPEED: u32 = 3;

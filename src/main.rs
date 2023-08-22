@@ -13,6 +13,8 @@ use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 
+use kayak_ui::prelude::{widgets::*, *};
+
 use debug::egui::{
     initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_enemy_count,
     update_player_rifle_stats, update_player_shotgun_stats, update_player_stats, update_wave_timer,
@@ -34,6 +36,7 @@ use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
 use projectile::{handle_projectile_collision, spawner::*};
 use std::time::Duration;
 use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
+use ui::hud::setup_hud;
 use weapon::rifle::fire_rifle;
 use weapon::shotgun::fire_shotgun;
 
@@ -64,6 +67,8 @@ fn main() {
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
             InputManagerPlugin::<PlayerAction>::default(),
+            KayakContextPlugin,
+            KayakWidgets,
             //EguiPlugin,
         ))
         .add_systems(
@@ -74,6 +79,7 @@ fn main() {
                 define_space,
                 spawn_waves_manager,
                 initialize_uistate,
+                setup_hud,
             ),
         )
         .add_systems(
@@ -87,7 +93,6 @@ fn main() {
                 resolve_damage.before(respawn_player),
                 manage_waves,
                 move_player,
-                //swap_player_aim,
                 fire_rifle,
                 fire_shotgun,
                 target_enemy,
@@ -101,7 +106,7 @@ fn main() {
                 toggle_shotgun,
                 update_player_shotgun_cooldown,
                 //log_player_hitpoint,
-                //debug guizmo ############################################
+                //debug guizmo ##########################################
                 //move_projectile_to_target,
                 //draw_collider,
                 //draw_antispawn_zone,
@@ -134,7 +139,7 @@ struct ResolutionSettings {
 }
 
 pub fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    //commands.spawn(Camera2dBundle::default());
     commands.insert_resource(SpawnTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
     });

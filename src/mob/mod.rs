@@ -61,7 +61,7 @@ pub fn attack_player(
                 if is_player_damage.get(*entity_b).is_ok() {
                     for mut player_damage in &mut is_player_damage {
                         player_damage.instances.push(infected_dmg_stat);
-                        println!("taking damage! : {}", infected_dmg_stat);
+                        //println!("taking damage! : {}", infected_dmg_stat);
                     }
                     return true;
                 }

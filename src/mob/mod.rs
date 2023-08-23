@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::CollisionStarted;
 
 use crate::global::*;
-use crate::player::{AttackTimer, Player};
+use crate::player::Player;
 use crate::projectile::Damage;
 
 use self::infected::*;
@@ -13,6 +13,11 @@ pub mod spawner;
 
 #[derive(Component)]
 pub struct Mob;
+
+#[derive(Component)]
+pub struct AttackTimer {
+    timer: Timer,
+}
 
 /*#[derive(Resource)]
 pub struct RandomDirectionTimer {

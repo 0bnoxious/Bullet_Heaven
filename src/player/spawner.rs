@@ -7,7 +7,7 @@ use leafwing_input_manager::prelude::*;
 use crate::{global::*, projectile::Damage};
 
 use super::{
-    default_player_stats, input::PlayerAction, AttackTimer, Player, DEFAULT_PLAYER_ATTACK_SPEED,
+    default_player_stats, input::PlayerAction, Player, DEFAULT_PLAYER_ATTACK_SPEED,
     DEFAULT_PLAYER_SIZE,
 };
 
@@ -47,12 +47,6 @@ pub fn spawn_player(mut commands: Commands) {
         Position(Vec2::new(0., 0.)),
         Collider::cuboid(DEFAULT_PLAYER_SIZE as f32, DEFAULT_PLAYER_SIZE as f32),
         CollisionLayers::new([Layer::Player], [Layer::Person, Layer::Infected]),
-        AttackTimer {
-            timer: Timer::new(
-                Duration::from_millis(DEFAULT_PLAYER_ATTACK_SPEED as u64),
-                TimerMode::Repeating,
-            ),
-        },
     ));
 }
 
@@ -86,12 +80,6 @@ pub fn respawn_player(mut commands: Commands, player_query: Query<(&Player, With
             Position(Vec2::new(0., 0.)),
             Collider::cuboid(DEFAULT_PLAYER_SIZE as f32, DEFAULT_PLAYER_SIZE as f32),
             CollisionLayers::new([Layer::Player], [Layer::Person, Layer::Infected]),
-            AttackTimer {
-                timer: Timer::new(
-                    Duration::from_millis(DEFAULT_PLAYER_ATTACK_SPEED as u64),
-                    TimerMode::Repeating,
-                ),
-            },
         ));
     }
 }

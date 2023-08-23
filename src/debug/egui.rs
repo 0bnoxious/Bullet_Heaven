@@ -2,15 +2,13 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
+use bevy_xpbd_2d::prelude::Position;
 
 use crate::{
-    global::Stats,
+    global::{AimType, Stats},
     map::wave::{WaveEnemyCountChange, WaveManager, WaveTimerChange},
     player::{Player, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange},
-    weapon::{
-        rifle::{Rifle, RifleBundle, RifleCoolDown},
-        shotgun::{Shotgun, ShotgunBundle, ShotgunCoolDown, DEFAULT_SHOTGUN_AIM_TYPE},
-    },
+    weapon::{rifle::Rifle, shotgun::Shotgun, Weapon, WeaponCoolDown},
 };
 
 #[derive(Default, Resource)]
@@ -20,7 +18,7 @@ pub struct UiState {
     player_rifle_cooldown: u32,
     is_shotgun_equiped: bool,
     player_shotgun_cooldown: u32,
-    player_shotgun_bullet_count: u32,
+    player_shotgun_bullet_count: i32,
     player_shotgun_spread: u32,
     wave_timer_cooldown: u32,
     enemy_spawn_cooldown: u32,
@@ -250,73 +248,71 @@ pub fn ui_example_system(
 
 pub fn toggle_rifle(
     mut commands: Commands,
-    player_rifle_entity_query: Query<Entity, (With<Rifle>, With<Player>)>,
-    mut player_entity_query: Query<Entity, With<Player>>,
+    mut rifle_entity_query: Query<Entity, (With<Rifle>, With<Weapon>)>,
     ui_state: ResMut<UiState>,
 ) {
     if ui_state.is_rifle_equiped {
-        if player_rifle_entity_query.is_empty() {
-            for player_entity in &mut player_entity_query {
-                println!("Adding Rifle!");
-                commands.entity(player_entity).insert(RifleBundle {
-                    rifle: Rifle {
-                        cooldown: ui_state.player_shotgun_spread,
-                        ..default()
-                    },
-                    cooldown: RifleCoolDown {
-                        timer: Timer::new(
-                            Duration::from_millis(ui_state.player_shotgun_spread as u64),
-                            TimerMode::Repeating,
-                        ),
-                    },
-                });
-            }
+        if rifle_entity_query.get_single_mut().is_err() {
+            println!("Adding Rifle!");
+            let weapon = Weapon {
+                aim_type: AimType::Random,
+                damage: 1,
+                cooldown: ui_state.player_rifle_cooldown,
+                spread: 1,
+                bullet_count: 1,
+            };
+            commands.spawn((
+                weapon,
+                WeaponCoolDown {
+                    timer: Timer::new(
+                        Duration::from_millis(ui_state.player_rifle_cooldown as u64),
+                        TimerMode::Repeating,
+                    ),
+                },
+                Rifle,
+                Position(Vec2::ZERO),
+                Name::new("Rifle"),
+            ));
         }
-    } else if !player_rifle_entity_query.is_empty() {
-        for player_entity in &mut player_entity_query {
-            println!("Removing Rifle!");
-            commands
-                .entity(player_entity)
-                .remove::<Rifle>()
-                .remove::<RifleCoolDown>();
-        }
+    } else if rifle_entity_query.get_single_mut().is_ok() {
+        println!("Removing Rifle!");
+        let rifle_entity = rifle_entity_query.get_single_mut().unwrap();
+        commands.entity(rifle_entity).despawn_recursive();
     }
 }
 
 pub fn toggle_shotgun(
     mut commands: Commands,
-    player_shotgun_entity_query: Query<Entity, (With<Shotgun>, With<Player>)>,
-    mut player_entity_query: Query<Entity, With<Player>>,
+    mut shotgun_entity_query: Query<Entity, (With<Weapon>, With<Shotgun>)>,
     ui_state: ResMut<UiState>,
 ) {
     if ui_state.is_shotgun_equiped {
-        if player_shotgun_entity_query.is_empty() {
-            for player_entity in &mut player_entity_query {
-                println!("Adding Shotgun!");
-                commands.entity(player_entity).insert(ShotgunBundle {
-                    shotgun: Shotgun {
-                        bullet_count: ui_state.player_shotgun_bullet_count,
-                        cooldown: ui_state.player_shotgun_cooldown,
-                        ..default()
-                    },
-                    cooldown: ShotgunCoolDown {
-                        timer: Timer::new(
-                            Duration::from_millis(ui_state.player_shotgun_cooldown as u64),
-                            TimerMode::Repeating,
-                        ),
-                    },
-                    aim_type: DEFAULT_SHOTGUN_AIM_TYPE,
-                });
-            }
+        if shotgun_entity_query.get_single_mut().is_err() {
+            println!("Adding Shotgun!");
+            let weapon = Weapon {
+                aim_type: AimType::Closest,
+                damage: 1,
+                cooldown: ui_state.player_shotgun_cooldown,
+                spread: ui_state.player_shotgun_spread,
+                bullet_count: ui_state.player_shotgun_bullet_count,
+            };
+            commands.spawn((
+                weapon,
+                WeaponCoolDown {
+                    timer: Timer::new(
+                        Duration::from_millis(ui_state.player_shotgun_cooldown as u64),
+                        TimerMode::Repeating,
+                    ),
+                },
+                Shotgun,
+                Position(Vec2::ZERO),
+                Name::new("Shotgun"),
+            ));
         }
-    } else if !player_shotgun_entity_query.is_empty() {
-        for player_entity in &mut player_entity_query {
-            println!("Removing Shotgun!");
-            commands
-                .entity(player_entity)
-                .remove::<Shotgun>()
-                .remove::<ShotgunCoolDown>();
-        }
+    } else if shotgun_entity_query.get_single_mut().is_ok() {
+        println!("Removing Shotgun!");
+        let shotgun_entity = shotgun_entity_query.get_single_mut().unwrap();
+        commands.entity(shotgun_entity).despawn_recursive();
     }
 }
 
@@ -330,22 +326,22 @@ pub fn update_player_stats(
 }
 
 pub fn update_player_rifle_stats(
-    mut player_rifle_query: Query<&mut Rifle, With<Player>>,
+    mut rifle_query: Query<&mut Weapon, With<Rifle>>,
     ui_state: ResMut<UiState>,
 ) {
-    for mut player_rifle in &mut player_rifle_query {
-        player_rifle.cooldown = ui_state.player_rifle_cooldown;
+    for mut rifle in &mut rifle_query {
+        rifle.cooldown = ui_state.player_rifle_cooldown;
     }
 }
 
 pub fn update_player_shotgun_stats(
-    mut player_shotgun_query: Query<&mut Shotgun, With<Player>>,
+    mut shotgun_query: Query<&mut Weapon, With<Shotgun>>,
     ui_state: ResMut<UiState>,
 ) {
-    for mut player_shotgun in &mut player_shotgun_query {
-        player_shotgun.cooldown = ui_state.player_shotgun_cooldown;
-        player_shotgun.bullet_count = ui_state.player_shotgun_bullet_count;
-        player_shotgun.spread = ui_state.player_shotgun_spread;
+    for mut shotgun in &mut shotgun_query {
+        shotgun.cooldown = ui_state.player_shotgun_cooldown;
+        shotgun.bullet_count = ui_state.player_shotgun_bullet_count;
+        shotgun.spread = ui_state.player_shotgun_spread;
     }
 }
 

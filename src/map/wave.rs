@@ -90,20 +90,17 @@ pub fn build_waves() -> Vec<Wave> {
     let mut waves: Vec<Wave> = Vec::new();
 
     for (wave_num, _) in (0..NUMBER_OF_WAVES).enumerate() {
-        let mob_type;
         if wave_num % 2 != 0 {
-            mob_type = MobType::InfectedRanged;
+            waves.push(Wave {
+                max_mob_count: MAX_WAVE_MOB_COUNT,
+                mobs_type: MobType::InfectedRanged,
+            })
         } else {
-            mob_type = MobType::Infected;
+            waves.push(Wave {
+                max_mob_count: MAX_WAVE_MOB_COUNT,
+                mobs_type: MobType::Infected,
+            })
         }
-
-        let wave = Wave {
-            max_mob_count: MAX_WAVE_MOB_COUNT,
-            mobs_type: mob_type,
-            //kill_count: 0,
-        };
-        waves.push(wave);
     }
-
     waves
 }

@@ -237,7 +237,7 @@ pub fn ui_example_system(
                     });
                 }
                 if ui.button("+1e").clicked() {
-                    ui_state.enemy_count += 1000;
+                    ui_state.enemy_count += 1;
                     enemy_count_event_writer.send(WaveEnemyCountChange {
                         new_enemy_count: ui_state.enemy_count,
                     });

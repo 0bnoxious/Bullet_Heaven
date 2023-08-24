@@ -38,12 +38,12 @@ pub struct PlayerShotGunCoolDownChange {}
 pub fn update_player_shotgun_cooldown(
     mut commands: Commands,
     mut player_shotgun_cooldown_change_events: EventReader<PlayerShotGunCoolDownChange>,
-    shotgun_query: Query<(&Weapon, &mut WeaponCoolDown), With<Weapon>>,
+    shotgun_query: Query<&Weapon, With<Weapon>>,
     mut timer_query: Query<Entity, (With<WeaponCoolDown>, With<Weapon>)>,
 ) {
     for _ in player_shotgun_cooldown_change_events.iter() {
         for entity in &mut timer_query {
-            for (shotgun, shotgun_cooldown) in shotgun_query.iter() {
+            for shotgun in shotgun_query.iter() {
                 println!("new shotgun cooldown value {}", shotgun.cooldown);
                 let updated_attack_timer = WeaponCoolDown {
                     timer: Timer::new(
@@ -64,12 +64,13 @@ pub struct PlayerRifleCoolDownChange {}
 pub fn update_player_rifle_cooldown(
     mut commands: Commands,
     mut player_attack_speed_change_events: EventReader<PlayerRifleCoolDownChange>,
-    rifle_query: Query<(&mut Weapon, &mut WeaponCoolDown), With<Player>>,
+    rifle_query: Query<&mut Weapon, With<Rifle>>,
     mut timer_query: Query<Entity, (With<WeaponCoolDown>, With<Rifle>)>,
 ) {
     for _ in player_attack_speed_change_events.iter() {
         for entity in &mut timer_query {
-            for (rifle, rifle_cooldown) in rifle_query.iter() {
+            for rifle in rifle_query.iter() {
+                println!("new rifle cooldown value {}", rifle.cooldown);
                 let updated_rifle_timer = WeaponCoolDown {
                     timer: Timer::new(
                         Duration::from_millis(rifle.cooldown as u64),

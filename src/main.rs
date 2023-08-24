@@ -12,122 +12,40 @@ use bevy::prelude::*;
 use bevy::window::{PresentMode, WindowTheme};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-
-use kayak_ui::prelude::{widgets::*, *};
-
-use debug::egui::{
-    initialize_uistate, toggle_rifle, toggle_shotgun, ui_example_system, update_enemy_count,
-    update_player_rifle_stats, update_player_shotgun_stats, update_player_stats, update_wave_timer,
-    UiState,
-};
+use debug::DebugPlugin;
 use global::*;
-use leafwing_input_manager::prelude::*;
-use map::define_space;
-use map::wave::{manage_waves, spawn_waves_manager, WaveEnemyCountChange, WaveTimerChange};
-use mob::attack_player;
-use mob::spawner::SpawnTimer;
-use player::action::move_player;
-use player::input::{player_walks, PlayerAction, PlayerAimSwap, PlayerWalk};
-use player::{
-    spawner::*, update_player_rifle_cooldown, update_player_shotgun_cooldown,
-    PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange,
-};
-use projectile::movement::{move_rifle_projectile, move_shotgun_projectile};
-use projectile::{handle_projectile_collision, spawner::*};
-use std::time::Duration;
-use targeting::{move_mob_to_target, target_enemy, target_player, HasTarget};
+use kayak_ui::prelude::{widgets::*, *};
+use map::MapPlugin;
+use mob::MobPlugin;
+use player::{spawner::*, PlayerPlugin};
+use projectile::ProjectilePlugin;
+use targeting::TargetingPlugin;
 use ui::hud::setup_hud;
-use weapon::rifle::fire_rifle;
-use weapon::shotgun::fire_shotgun;
+use weapon::WeaponPlugin;
 
 fn main() {
     App::new()
-        /* .add_plugins((
-            DefaultPlugins,
-            LogDiagnosticsPlugin::default(),
-            FrameTimeDiagnosticsPlugin::default(),
-        ))*/
         .insert_resource(SubstepCount(2))
-        .init_resource::<UiState>()
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Bullet Heaven".into(),
-                    resolution: (1920., 1080.).into(),
-                    present_mode: PresentMode::AutoVsync,
-                    // Tells wasm to resize the window according to the available canvas
-                    fit_canvas_to_parent: true,
-                    // Tells wasm not to override default event handling, like F5, Ctrl+R etc.
-                    prevent_default_event_handling: false,
-                    window_theme: Some(WindowTheme::Dark),
-                    ..default()
-                }),
-                ..default()
-            }),
+            DefaultPlugins.set(set_primary_window()),
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
-            InputManagerPlugin::<PlayerAction>::default(),
             KayakContextPlugin,
             KayakWidgets,
-            //EguiPlugin,
+            MapPlugin,
+            PlayerPlugin,
+            ProjectilePlugin,
+            TargetingPlugin,
+            WeaponPlugin,
+            MobPlugin,
+            DebugPlugin,
         ))
-        .add_systems(
-            Startup,
-            (
-                setup,
-                spawn_player,
-                define_space,
-                spawn_waves_manager,
-                initialize_uistate,
-                setup_hud,
-            ),
-        )
+        .add_systems(Startup, (setup_resolution, setup_hud))
         .add_systems(
             Update,
-            (
-                update_projectile_lifetime,
-                handle_projectile_collision,
-                target_player,
-                move_mob_to_target,
-                toggle_resolution,
-                resolve_damage.before(respawn_player),
-                manage_waves,
-                move_player,
-                fire_rifle,
-                fire_shotgun,
-                target_enemy,
-                move_shotgun_projectile,
-                move_rifle_projectile,
-                attack_player,
-                //debug egui ############################################
-                update_player_stats,
-                toggle_rifle,
-                update_player_rifle_cooldown,
-                toggle_shotgun,
-                update_player_shotgun_cooldown,
-                //log_player_hitpoint,
-                //debug guizmo ##########################################
-                //move_projectile_to_target,
-                //draw_collider,
-                //draw_antispawn_zone,
-                //draw_player_target_line,
-                //draw_weapon_spread_lines,
-            ),
+            (toggle_resolution, resolve_damage.before(respawn_player)),
         )
-        .add_systems(Update, player_walks)
-        .add_systems(Update, ui_example_system)
-        .add_systems(Update, update_player_shotgun_stats)
-        .add_systems(Update, update_player_rifle_stats)
-        .add_systems(Update, update_wave_timer)
-        .add_systems(Update, update_enemy_count)
-        .add_event::<PlayerWalk>()
-        .add_event::<PlayerAimSwap>()
-        .add_event::<PlayerRifleCoolDownChange>()
-        .add_event::<PlayerShotGunCoolDownChange>()
-        .add_event::<WaveTimerChange>()
-        .add_event::<WaveEnemyCountChange>()
         .add_systems(Last, despawn_dead)
-        .register_type::<HasTarget>()
         .run()
 }
 
@@ -138,11 +56,7 @@ struct ResolutionSettings {
     small: Vec2,
 }
 
-pub fn setup(mut commands: Commands) {
-    //commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(SpawnTimer {
-        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
-    });
+pub fn setup_resolution(mut commands: Commands) {
     commands.insert_resource(Gravity(Vec2::ZERO));
     commands.insert_resource(ResolutionSettings {
         large: Vec2::new(1920.0, 1080.0),
@@ -151,7 +65,23 @@ pub fn setup(mut commands: Commands) {
     });
 }
 
-/// This system shows how to request the window to a new resolution
+pub fn set_primary_window() -> WindowPlugin {
+    WindowPlugin {
+        primary_window: Some(Window {
+            title: "Bullet Heaven".into(),
+            resolution: (1920., 1080.).into(),
+            present_mode: PresentMode::AutoVsync,
+            // Tells wasm to resize the window according to the available canvas
+            fit_canvas_to_parent: true,
+            // Tells wasm not to override default event handling, like F5, Ctrl+R etc.
+            prevent_default_event_handling: false,
+            window_theme: Some(WindowTheme::Dark),
+            ..default()
+        }),
+        ..default()
+    }
+}
+
 fn toggle_resolution(
     keys: Res<Input<KeyCode>>,
     mut windows: Query<&mut Window>,

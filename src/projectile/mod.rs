@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use crate::{global::*, mob::infected::Infected};
+use crate::{global::*, mob::infected::Infected, targeting::HasTarget};
+
+use self::{
+    movement::{move_rifle_projectile, move_shotgun_projectile},
+    spawner::update_projectile_lifetime,
+};
 
 pub mod movement;
 pub mod spawner;
@@ -10,6 +15,23 @@ pub const PROJECTILE_SIZE: f32 = 8.;
 pub const PROJECTILE_SPEED: f32 = 500.;
 pub const PROJECTILE_DAMAGE: i32 = 1;
 pub const PROJECTILE_LIFE_SPAN: u64 = 1;
+
+pub struct ProjectilePlugin;
+
+impl Plugin for ProjectilePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                update_projectile_lifetime,
+                handle_projectile_collision,
+                move_shotgun_projectile,
+                move_rifle_projectile,
+            ),
+        )
+        .register_type::<HasTarget>();
+    }
+}
 
 #[derive(Component, Debug)]
 pub struct Projectile;

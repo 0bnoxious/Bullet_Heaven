@@ -4,6 +4,8 @@ use bevy::prelude::*;
 
 use crate::global::AimType;
 
+use self::{rifle::fire_rifle, shotgun::fire_shotgun};
+
 pub mod rifle;
 pub mod shotgun;
 pub mod spawner;
@@ -21,6 +23,14 @@ const DEFAULT_SHOTGUN_SPREAD: u32 = 15;
 const DEFAULT_SHOTGUN_DAMAGE: u32 = 1;
 const DEFAULT_SHOTGUN_COOLDOWN: u32 = 1;
 const DEFAULT_SHOTGUN_AIM_TYPE: AimType = AimType::Closest;
+
+pub struct WeaponPlugin;
+
+impl Plugin for WeaponPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (fire_rifle, fire_shotgun));
+    }
+}
 
 #[derive(Component)]
 pub struct Weapon {

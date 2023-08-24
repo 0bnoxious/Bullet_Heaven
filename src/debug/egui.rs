@@ -7,9 +7,11 @@ use bevy_xpbd_2d::prelude::Position;
 use crate::{
     global::{AimType, Stats},
     map::wave::{WaveEnemyCountChange, WaveManager, WaveTimerChange},
-    player::{Player, PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange},
+    player::Player,
     weapon::{rifle::Rifle, shotgun::Shotgun, Weapon, WeaponCoolDown},
 };
+
+use super::{PlayerRifleCoolDownChange, PlayerShotGunCoolDownChange};
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -38,7 +40,7 @@ pub fn initialize_uistate(mut ui_state: ResMut<UiState>) {
     ui_state.enemy_count = 1;
 }
 
-pub fn ui_example_system(
+pub fn debug_ui_system(
     mut ui_state: ResMut<UiState>,
     mut contexts: EguiContexts,
     mut rifle_cooldown_event_writer: EventWriter<PlayerRifleCoolDownChange>,

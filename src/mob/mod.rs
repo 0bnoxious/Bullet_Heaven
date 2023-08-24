@@ -5,11 +5,20 @@ use bevy_xpbd_2d::prelude::CollisionStarted;
 use crate::global::*;
 use crate::player::Player;
 use crate::projectile::Damage;
+use crate::targeting::mob_movement_system;
 
 use self::infected::*;
 
 pub mod infected;
 pub mod spawner;
+
+pub struct MobPlugin;
+
+impl Plugin for MobPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (mob_movement_system, mob_attack_system));
+    }
+}
 
 #[derive(Component)]
 pub struct Mob;
@@ -45,7 +54,7 @@ pub struct RandomDirectionTimer {
 //     }
 // }
 
-pub fn attack_player(
+pub fn mob_attack_system(
     mut is_player_damage: Query<&mut Damage, With<Player>>,
     is_infected_stats: Query<&Stats, With<Infected>>,
     mut is_infected_attack_timer: Query<&mut AttackTimer, With<Infected>>,

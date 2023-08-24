@@ -11,6 +11,14 @@ use crate::{
     projectile::Projectile,
 };
 
+pub struct TargetingPlugin;
+
+impl Plugin for TargetingPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (enemy_targeting_system, player_targeting_system));
+    }
+}
+
 #[derive(Component, Reflect, Debug)]
 pub struct Target;
 
@@ -19,10 +27,10 @@ pub struct HasTarget {
     pub target_position: Vec2,
 }
 
-pub fn target_enemy(
+pub fn player_targeting_system(
     mut commands: Commands,
     infected_as_target_querry: Query<&Target, With<Infected>>,
-    mut has_target_query: Query<Entity, (With<Player>, Without<HasTarget>)>,
+    mut player_has_target_query: Query<Entity, (With<Player>, Without<HasTarget>)>,
     mut target_pos_query: Query<&mut HasTarget, (With<Player>, Without<Projectile>)>,
     mut closest: ClosestTarget,
 ) {
@@ -30,13 +38,15 @@ pub fn target_enemy(
     if !infected_as_target_querry.is_empty() {
         // when the player have no target
         if target_pos_query.is_empty() {
-            for player_entity_without_target in &mut has_target_query {
-                let closest = closest.infected();
-                commands
-                    .entity(player_entity_without_target)
-                    .insert(HasTarget {
-                        target_position: closest,
-                    });
+            if !player_has_target_query.is_empty() {
+                for player_entity_without_target in &mut player_has_target_query {
+                    let closest = closest.infected();
+                    commands
+                        .entity(player_entity_without_target)
+                        .insert(HasTarget {
+                            target_position: closest,
+                        });
+                }
             }
         } else {
             for mut target in &mut target_pos_query {
@@ -47,7 +57,7 @@ pub fn target_enemy(
 }
 
 #[allow(clippy::type_complexity)]
-pub fn move_mob_to_target(
+pub fn mob_movement_system(
     mut infected_query: Query<
         (&mut LinearVelocity, &Position, &HasTarget),
         (With<Mob>, Without<Player>),
@@ -62,7 +72,7 @@ pub fn move_mob_to_target(
     }
 }
 
-pub fn target_player(
+pub fn enemy_targeting_system(
     mut commands: Commands,
     player_query: Query<&Position, With<Player>>,
     mut infected_without_target_query: Query<Entity, (With<Infected>, Without<HasTarget>)>,

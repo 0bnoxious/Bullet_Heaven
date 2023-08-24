@@ -3,16 +3,30 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::CollisionStarted;
 
 use crate::global::*;
-use crate::player::{AttackTimer, Player};
+use crate::player::Player;
 use crate::projectile::Damage;
+use crate::targeting::mob_movement_system;
 
 use self::infected::*;
 
 pub mod infected;
 pub mod spawner;
 
+pub struct MobPlugin;
+
+impl Plugin for MobPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (mob_movement_system, mob_attack_system));
+    }
+}
+
 #[derive(Component)]
 pub struct Mob;
+
+#[derive(Component)]
+pub struct AttackTimer {
+    timer: Timer,
+}
 
 /*#[derive(Resource)]
 pub struct RandomDirectionTimer {
@@ -40,7 +54,7 @@ pub struct RandomDirectionTimer {
 //     }
 // }
 
-pub fn attack_player(
+pub fn mob_attack_system(
     mut is_player_damage: Query<&mut Damage, With<Player>>,
     is_infected_stats: Query<&Stats, With<Infected>>,
     mut is_infected_attack_timer: Query<&mut AttackTimer, With<Infected>>,
@@ -61,7 +75,7 @@ pub fn attack_player(
                 if is_player_damage.get(*entity_b).is_ok() {
                     for mut player_damage in &mut is_player_damage {
                         player_damage.instances.push(infected_dmg_stat);
-                        println!("taking damage! : {}", infected_dmg_stat);
+                        //println!("taking damage! : {}", infected_dmg_stat);
                     }
                     return true;
                 }

@@ -14,8 +14,6 @@ pub const DEFAULT_INFECTED_COLOR: Color = Color::RED;
 pub const DEFAULT_INFECTED_RANGED_COLOR: Color = Color::WHITE;
 pub const DEFAULT_INFECTED_SIZE: f32 = 10.;
 
-use crate::player::AttackTimer;
-
 use super::*;
 
 pub fn default_infected_stats() -> Stats {

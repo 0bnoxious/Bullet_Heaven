@@ -4,6 +4,15 @@ use rand::{rngs::ThreadRng, Rng};
 
 use crate::projectile::Damage;
 
+pub const STARTING_GAME_STATE: GameState = GameState::Menu;
+
+#[derive(Component, Debug, Clone, Copy)]
+pub enum GameState {
+    Menu,
+    Playing,
+    Paused,
+}
+
 #[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,
@@ -88,7 +97,7 @@ pub fn resolve_damage(
         damage.instances.clear();
 
         if stats.hit_points <= 0 {
-            println!("Entity : {entity:?} is dead!");
+            //println!("Entity : {entity:?} is dead!");
             commands.entity(entity).insert(Dead);
         }
     }

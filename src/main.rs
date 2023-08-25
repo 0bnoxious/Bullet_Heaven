@@ -19,8 +19,10 @@ use mob::MobPlugin;
 use player::{spawner::*, PlayerPlugin};
 use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
-use ui::hud::setup_hud;
-use ui::{set_primary_window, setup_resolution, toggle_resolution};
+use ui::{
+    hud::{hud_startup, update_hud_wave_timer_value},
+    set_primary_window, setup_resolution, toggle_resolution,
+};
 use weapon::WeaponPlugin;
 
 fn main() {
@@ -39,12 +41,16 @@ fn main() {
             TargetingPlugin,
             WeaponPlugin,
             MobPlugin,
-            DebugPlugin,
+            //DebugPlugin,
         ))
-        .add_systems(Startup, (setup_resolution, setup_hud))
+        .add_systems(Startup, (setup_resolution, hud_startup))
         .add_systems(
             Update,
-            (toggle_resolution, resolve_damage.before(respawn_player)),
+            (
+                toggle_resolution,
+                resolve_damage.before(respawn_player),
+                update_hud_wave_timer_value,
+            ),
         )
         .add_systems(Last, despawn_dead)
         .run()

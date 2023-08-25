@@ -9,7 +9,7 @@ use crate::{
     player::{Player, DEFAULT_PLAYER_ANTI_MOB_SPAWN_SIZE},
     projectile::Projectile,
     targeting::{define_spread, HasTarget},
-    weapon::Weapon,
+    weapon::{shotgun::Shotgun, Weapon},
 };
 
 pub fn draw_collider(mut gizmos: Gizmos, q: Query<(&Collider, &Position)>) {
@@ -60,37 +60,41 @@ pub fn draw_player_target_line(
 #[allow(clippy::type_complexity)]
 pub fn draw_weapon_spread_lines(
     mut gizmos: Gizmos,
-    mut query: Query<(&HasTarget, &Position, &Weapon), (With<Player>, Without<Projectile>)>,
+    mut query: Query<(&HasTarget, &Position), (With<Player>, Without<Projectile>)>,
+    weapon_query: Query<&Weapon, With<Shotgun>>,
 ) {
-    for (player_has_target, player_position, shotgun) in &mut query {
-        let distance_to_target =
-            Vec2::distance(player_position.0, player_has_target.target_position);
-        let radians = (shotgun.spread as f32).to_radians();
+    for (player_has_target, player_position) in &mut query {
+        for weapon in weapon_query.iter() {
+            println!("allo");
+            let distance_to_target =
+                Vec2::distance(player_position.0, player_has_target.target_position);
+            let radians = (weapon.spread as f32).to_radians();
 
-        let left =
-            Vec2::from_angle(radians).rotate(player_has_target.target_position - player_position.0);
+            let left = Vec2::from_angle(radians)
+                .rotate(player_has_target.target_position - player_position.0);
 
-        let right = Vec2::from_angle(-radians)
-            .rotate(player_has_target.target_position - player_position.0);
+            let right = Vec2::from_angle(-radians)
+                .rotate(player_has_target.target_position - player_position.0);
 
-        let spread = define_spread(
-            player_position.0,
-            player_has_target.target_position,
-            shotgun.spread,
-        );
+            let spread = define_spread(
+                player_position.0,
+                player_has_target.target_position,
+                weapon.spread,
+            );
 
-        gizmos.line_2d(
-            player_position.0,
-            spread * distance_to_target,
-            Color::FUCHSIA,
-        );
+            gizmos.line_2d(
+                player_position.0,
+                spread * distance_to_target,
+                Color::FUCHSIA,
+            );
 
-        gizmos.line_2d(
-            player_position.0,
-            player_has_target.target_position,
-            Color::ORANGE_RED,
-        );
-        gizmos.line_2d(player_position.0, left * distance_to_target, Color::WHITE);
-        gizmos.line_2d(player_position.0, right * distance_to_target, Color::WHITE);
+            gizmos.line_2d(
+                player_position.0,
+                player_has_target.target_position,
+                Color::ORANGE_RED,
+            );
+            gizmos.line_2d(player_position.0, left * distance_to_target, Color::WHITE);
+            gizmos.line_2d(player_position.0, right * distance_to_target, Color::WHITE);
+        }
     }
 }

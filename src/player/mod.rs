@@ -1,12 +1,7 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 
-use crate::{
-    global::*,
-    weapon::{rifle::Rifle, Weapon, WeaponCoolDown},
-};
+use crate::global::*;
 
 use self::{
     action::move_player,

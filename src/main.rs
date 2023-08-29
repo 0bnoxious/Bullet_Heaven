@@ -21,7 +21,8 @@ use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
 use ui::{
     hud::{setup_hud, wave_timer::update_hud_wave_timer_value},
-    set_primary_window, setup_resolution, toggle_resolution,
+    set_primary_window,
+    settings::SettingsPlugin,
 };
 use weapon::WeaponPlugin;
 
@@ -42,12 +43,12 @@ fn main() {
             WeaponPlugin,
             MobPlugin,
             DebugPlugin,
+            SettingsPlugin,
         ))
-        .add_systems(Startup, (setup_resolution, setup_hud))
+        .add_systems(Startup, setup_hud)
         .add_systems(
             Update,
             (
-                toggle_resolution,
                 resolve_damage.before(respawn_player),
                 update_hud_wave_timer_value,
             ),

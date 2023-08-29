@@ -21,8 +21,8 @@ pub fn setup_hud(
         .spawn((Camera2dBundle::default(), CameraUIKayak))
         .id();
     font_mapping.set_default(asset_server.load("roboto.kayak_font"));
-
     let mut widget_context = KayakRootContext::new(camera_entity);
+
     widget_context.add_plugin(KayakWidgetsContextPlugin);
     widget_context.add_widget_system(
         HudWaveTimerWidget::default().get_name(),

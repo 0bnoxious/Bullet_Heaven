@@ -4,21 +4,7 @@ use bevy::{
 };
 
 pub mod hud;
-
-#[derive(Resource)]
-pub struct ResolutionSettings {
-    large: Vec2,
-    medium: Vec2,
-    small: Vec2,
-}
-
-pub fn setup_resolution(mut commands: Commands) {
-    commands.insert_resource(ResolutionSettings {
-        large: Vec2::new(1920.0, 1080.0),
-        medium: Vec2::new(800.0, 600.0),
-        small: Vec2::new(640.0, 360.0),
-    });
-}
+pub mod settings;
 
 pub fn set_primary_window() -> WindowPlugin {
     WindowPlugin {
@@ -34,26 +20,5 @@ pub fn set_primary_window() -> WindowPlugin {
             ..default()
         }),
         ..default()
-    }
-}
-
-pub fn toggle_resolution(
-    keys: Res<Input<KeyCode>>,
-    mut windows: Query<&mut Window>,
-    resolution: Res<ResolutionSettings>,
-) {
-    let mut window = windows.single_mut();
-
-    if keys.just_pressed(KeyCode::Key1) {
-        let res = resolution.small;
-        window.resolution.set(res.x, res.y);
-    }
-    if keys.just_pressed(KeyCode::Key2) {
-        let res = resolution.medium;
-        window.resolution.set(res.x, res.y);
-    }
-    if keys.just_pressed(KeyCode::Key3) {
-        let res = resolution.large;
-        window.resolution.set(res.x, res.y);
     }
 }

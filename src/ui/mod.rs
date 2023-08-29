@@ -27,7 +27,9 @@ impl Plugin for KayakUiPlugin {
         app.init_collection::<ImageAssets>()
             .init_resource::<PreloadResource>()
             .add_plugins((KayakContextPlugin, KayakWidgets))
-            .add_systems(Startup, (setup_kayak_ui, setup_hud, setup_game_menu))
+            .add_systems(Startup, setup_kayak_ui)
+            .add_systems(Startup, setup_hud)
+            //.add_systems(Startup, setup_game_menu)
             .add_systems(Update, update_hud_wave_timer_value);
     }
 }
@@ -52,7 +54,6 @@ pub fn setup_kayak_ui(
         <KayakAppBundle>
             <HudWaveTimerBundle/>
             <MenuBackgroundBundle/>
-            //<MenuButtonBundle/>
         </KayakAppBundle>
     };
 

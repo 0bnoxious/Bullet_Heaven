@@ -11,6 +11,7 @@ pub mod weapon;
 use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
+use debug::DebugPlugin;
 use global::*;
 
 use map::MapPlugin;
@@ -36,7 +37,7 @@ fn main() {
             MobPlugin,
             KayakUiPlugin,
             SettingsPlugin,
-            //DebugPlugin,
+            DebugPlugin,
             //WorldInspectorPlugin::default(),
         ))
         .add_systems(Update, (resolve_damage.before(respawn_player),))

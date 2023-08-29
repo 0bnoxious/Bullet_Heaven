@@ -34,9 +34,11 @@ pub fn hud_wave_timer_render(
     mut commands: Commands,
     query: Query<&HudWaveTimerWidget>,
 ) -> bool {
-    if let Ok(my_widget) = query.get(entity) {
-        dbg!(query.iter().count());
-        query.iter().for_each(|widget| {
+    // HudWaveTimerWidget is updated twice, idk why :(
+    // this boolean is used to render the timer only once
+    let mut rendered = false;
+    query.iter().for_each(|widget| {
+        if !rendered {
             let parent_id = Some(entity);
             let mut secs = widget.wave_time;
             let mins = secs / 60;
@@ -52,9 +54,11 @@ pub fn hud_wave_timer_render(
                     }}
                 />
             };
-            dbg!(my_widget.wave_time);
-        });
-    }
+
+            rendered = true;
+        }
+    });
+
     true
 }
 

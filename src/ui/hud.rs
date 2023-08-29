@@ -6,61 +6,13 @@ use kayak_ui::{
     CameraUIKayak,
 };
 
-#[derive(Bundle)]
-pub struct HudWaveTimerBundle {
-    pub props: HudWaveTimerWidget,
-    pub widget_name: WidgetName,
-}
+use crate::ui::hud::wave_timer::{
+    hud_wave_timer_render, HudWaveTimerBundle, HudWaveTimerUpdate, HudWaveTimerWidget,
+};
 
-impl Default for HudWaveTimerBundle {
-    fn default() -> Self {
-        Self {
-            props: Default::default(),
-            widget_name: HudWaveTimerWidget::default().get_name(),
-        }
-    }
-}
+pub mod wave_timer;
 
-#[derive(Component, Clone, PartialEq, Default)]
-pub struct HudWaveTimerWidget {
-    pub wave_time: u32,
-}
-
-#[derive(Component)]
-pub struct HudWaveTimerUpdate {
-    timer: Timer,
-}
-
-pub fn hud_wave_timer_render(
-    In(entity): In<Entity>,
-    mut widget_context: ResMut<KayakWidgetContext>,
-    mut commands: Commands,
-    query: Query<&HudWaveTimerWidget>,
-) -> bool {
-    if let Ok(my_widget) = query.get(entity) {
-        query.iter().for_each(|widget| {
-            let parent_id = Some(entity);
-            rsx! {
-                <TextWidgetBundle
-                    text={TextProps {
-                        content: widget.wave_time.to_string(),
-                        size: 20.0,
-                        alignment: Alignment::Middle,
-                        ..Default::default()
-                    }}
-                />
-            };
-            dbg!(my_widget.wave_time);
-        });
-    }
-
-    true
-}
-
-impl Widget for HudWaveTimerWidget {}
-
-// Finally we need to let the core widget context know about our new widget!
-pub fn hud_startup(
+pub fn setup_hud(
     mut commands: Commands,
     mut font_mapping: ResMut<FontMapping>,
     asset_server: Res<AssetServer>,
@@ -80,31 +32,13 @@ pub fn hud_startup(
     widget_context.add_widget_data::<HudWaveTimerWidget, EmptyState>();
 
     let parent_id = None;
-
     commands.spawn(HudWaveTimerUpdate {
         timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
     });
-
     rsx! {
         <KayakAppBundle>
-           <HudWaveTimerBundle props={HudWaveTimerWidget { wave_time: 0, }}></HudWaveTimerBundle>
+           <HudWaveTimerBundle/>
         </KayakAppBundle>
     };
-
     commands.spawn((widget_context, EventDispatcher::default()));
-}
-
-pub fn update_hud_wave_timer_value(
-    mut hud_wave_timer_update_query: Query<&mut HudWaveTimerUpdate>,
-    mut hud_wave_timer_props_query: Query<&mut HudWaveTimerWidget, Without<PreviousWidget>>,
-    time_res: Res<Time>,
-) {
-    for mut wave_timer_update in &mut hud_wave_timer_update_query {
-        wave_timer_update.timer.tick(time_res.delta());
-        if wave_timer_update.timer.finished() {
-            for mut wave_timer_props in &mut hud_wave_timer_props_query {
-                wave_timer_props.wave_time += 1;
-            }
-        }
-    }
 }

@@ -20,7 +20,7 @@ use player::{spawner::*, PlayerPlugin};
 use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
 use ui::{
-    hud::{hud_startup, update_hud_wave_timer_value},
+    hud::{setup_hud, wave_timer::update_hud_wave_timer_value},
     set_primary_window, setup_resolution, toggle_resolution,
 };
 use weapon::WeaponPlugin;
@@ -41,9 +41,9 @@ fn main() {
             TargetingPlugin,
             WeaponPlugin,
             MobPlugin,
-            //DebugPlugin,
+            DebugPlugin,
         ))
-        .add_systems(Startup, (setup_resolution, hud_startup))
+        .add_systems(Startup, (setup_resolution, setup_hud))
         .add_systems(
             Update,
             (

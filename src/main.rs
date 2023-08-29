@@ -13,17 +13,13 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
 use debug::DebugPlugin;
 use global::*;
-use kayak_ui::prelude::{widgets::*, *};
+
 use map::MapPlugin;
 use mob::MobPlugin;
 use player::{spawner::*, PlayerPlugin};
 use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
-use ui::{
-    hud::{setup_hud, wave_timer::update_hud_wave_timer_value},
-    set_primary_window,
-    settings::SettingsPlugin,
-};
+use ui::{hud::wave_timer::update_hud_wave_timer_value, settings::SettingsPlugin, KayakUiPlugin};
 use weapon::WeaponPlugin;
 
 fn main() {
@@ -34,18 +30,16 @@ fn main() {
             DefaultPlugins.set(set_primary_window()),
             PhysicsPlugins::default(),
             WorldInspectorPlugin::default(),
-            KayakContextPlugin,
-            KayakWidgets,
             MapPlugin,
             PlayerPlugin,
             ProjectilePlugin,
             TargetingPlugin,
             WeaponPlugin,
             MobPlugin,
-            DebugPlugin,
+            KayakUiPlugin,
+            //DebugPlugin,
             SettingsPlugin,
         ))
-        .add_systems(Startup, setup_hud)
         .add_systems(
             Update,
             (

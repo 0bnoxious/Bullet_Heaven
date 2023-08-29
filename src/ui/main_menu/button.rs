@@ -2,21 +2,21 @@ use bevy::prelude::*;
 use kayak_ui::prelude::{widgets::*, *};
 
 #[derive(Default, Clone, PartialEq, Component)]
-pub struct MenuButton {
+pub struct MainMenuButton {
     pub text: String,
 }
 
-impl Widget for MenuButton {}
+impl Widget for MainMenuButton {}
 
 #[derive(Bundle)]
-pub struct MenuButtonBundle {
-    pub button: MenuButton,
+pub struct MainMenuButtonBundle {
+    pub button: MainMenuButton,
     pub styles: KStyle,
     pub on_event: OnEvent,
     pub widget_name: WidgetName,
 }
 
-impl Default for MenuButtonBundle {
+impl Default for MainMenuButtonBundle {
     fn default() -> Self {
         Self {
             button: Default::default(),
@@ -26,17 +26,17 @@ impl Default for MenuButtonBundle {
                 ..Default::default()
             },
             on_event: OnEvent::default(),
-            widget_name: MenuButton::default().get_name(),
+            widget_name: MainMenuButton::default().get_name(),
         }
     }
 }
 
-pub fn menu_button_render(
+pub fn main_menu_button_render(
     In(entity): In<Entity>,
     widget_context: Res<KayakWidgetContext>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    menu_button_query: Query<&MenuButton>,
+    menu_button_query: Query<&MainMenuButton>,
     state_query: Query<&ButtonState>,
 ) -> bool {
     let state_entity =
@@ -44,7 +44,7 @@ pub fn menu_button_render(
 
     let button_text = menu_button_query.get(entity).unwrap().text.clone();
     let button_image = asset_server.load("main_menu/button.png");
-    let button_image_hover = asset_server.load("main_menu/button-hover.png");
+    let button_image_hover = asset_server.load("main_menu/button_hover.png");
 
     let on_event = OnEvent::new(
         move |In(_entity): In<Entity>,

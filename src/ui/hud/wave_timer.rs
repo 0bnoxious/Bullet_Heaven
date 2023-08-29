@@ -21,12 +21,27 @@ pub struct HudWaveTimerWidget {
     pub wave_time: u32,
 }
 
+impl Widget for HudWaveTimerWidget {}
+
 #[derive(Component)]
 pub struct HudWaveTimerUpdate {
     pub timer: Timer,
 }
 
-impl Widget for HudWaveTimerWidget {}
+pub fn update_hud_wave_timer_value(
+    mut hud_wave_timer_update_query: Query<&mut HudWaveTimerUpdate>,
+    mut hud_wave_timer_props_query: Query<&mut HudWaveTimerWidget, Without<PreviousWidget>>,
+    time_res: Res<Time>,
+) {
+    for mut wave_timer_update in &mut hud_wave_timer_update_query {
+        wave_timer_update.timer.tick(time_res.delta());
+        if wave_timer_update.timer.finished() {
+            for mut wave_timer_props in &mut hud_wave_timer_props_query {
+                wave_timer_props.wave_time += 1;
+            }
+        }
+    }
+}
 
 pub fn hud_wave_timer_render(
     In(entity): In<Entity>,
@@ -60,19 +75,4 @@ pub fn hud_wave_timer_render(
     });
 
     true
-}
-
-pub fn update_hud_wave_timer_value(
-    mut hud_wave_timer_update_query: Query<&mut HudWaveTimerUpdate>,
-    mut hud_wave_timer_props_query: Query<&mut HudWaveTimerWidget, Without<PreviousWidget>>,
-    time_res: Res<Time>,
-) {
-    for mut wave_timer_update in &mut hud_wave_timer_update_query {
-        wave_timer_update.timer.tick(time_res.delta());
-        if wave_timer_update.timer.finished() {
-            for mut wave_timer_props in &mut hud_wave_timer_props_query {
-                wave_timer_props.wave_time += 1;
-            }
-        }
-    }
 }

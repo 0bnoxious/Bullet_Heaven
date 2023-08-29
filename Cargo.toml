@@ -11,6 +11,7 @@ bevy_xpbd_2d = "0.2"
 bevy-inspector-egui = "0.19"
 leafwing-input-manager = "0.10.0"
 bevy_egui = "0.21"
+bevy_asset_loader = { version = "0.17.0", features = ["2d"] }
 kayak_ui = { git = "https://github.com/StarArawn/kayak_ui.git", rev = "e4c183e9ea17bbc71368111547153597eddb5648" }
 
 # Enable a small amount of optimization in debug mode

@@ -9,9 +9,8 @@ pub mod ui;
 pub mod weapon;
 
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_2d::prelude::*;
-use debug::DebugPlugin;
+
 use global::*;
 
 use map::MapPlugin;
@@ -19,7 +18,7 @@ use mob::MobPlugin;
 use player::{spawner::*, PlayerPlugin};
 use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
-use ui::{hud::wave_timer::update_hud_wave_timer_value, settings::SettingsPlugin, KayakUiPlugin};
+use ui::{settings::SettingsPlugin, KayakUiPlugin};
 use weapon::WeaponPlugin;
 
 fn main() {
@@ -29,7 +28,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins.set(set_primary_window()),
             PhysicsPlugins::default(),
-            WorldInspectorPlugin::default(),
             MapPlugin,
             PlayerPlugin,
             ProjectilePlugin,
@@ -37,16 +35,11 @@ fn main() {
             WeaponPlugin,
             MobPlugin,
             KayakUiPlugin,
-            //DebugPlugin,
             SettingsPlugin,
+            //DebugPlugin,
+            //WorldInspectorPlugin::default(),
         ))
-        .add_systems(
-            Update,
-            (
-                resolve_damage.before(respawn_player),
-                update_hud_wave_timer_value,
-            ),
-        )
+        .add_systems(Update, (resolve_damage.before(respawn_player),))
         .add_systems(Last, despawn_dead)
         .run()
 }

@@ -12,10 +12,7 @@ use crate::{
     weapon::{rifle::Rifle, Weapon, WeaponCoolDown},
 };
 
-use self::{
-    egui::*,
-    gizmo::{draw_player_target_line, draw_weapon_spread_lines},
-};
+use self::egui::*;
 
 pub mod egui;
 pub mod gizmo;

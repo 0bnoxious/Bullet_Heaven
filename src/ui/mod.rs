@@ -2,20 +2,18 @@ use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollectionApp;
 use kayak_ui::{prelude::*, widgets::*, CameraUIKayak};
 
+use crate::global::GameState;
 use crate::ui::hud::{hud_render, HudBundle, HudProps};
-use crate::ui::main_menu::background::{
-    main_menu_background_render, MainMenuBackgroundBundle, MainMenuBackgroundProps,
-};
-use crate::ui::main_menu::button::MainMenuButtonBundle;
+use crate::ui::main_menu::background::main_menu_background_render;
+use crate::ui::main_menu::button::MainMenuButton;
+use crate::ui::main_menu::{main_menu_render, MainMenuBundle, MainMenuProps};
 use crate::ui::{
-    hud::wave_timer::{hud_wave_timer_render, HudWaveTimerBundle},
-    main_menu::button::{main_menu_button_render, MainMenuButton},
+    hud::wave_timer::hud_wave_timer_render, main_menu::button::main_menu_button_render,
 };
 
+use self::hud::setup_hud;
 use self::hud::wave_timer::update_hud_wave_timer_value;
 use self::main_menu::assets::ImageAssets;
-use self::main_menu::button::PreloadResource;
-use self::{hud::setup_hud, main_menu::setup_game_menu};
 
 pub mod hud;
 pub mod main_menu;
@@ -32,7 +30,6 @@ pub struct KayakUiPlugin;
 impl Plugin for KayakUiPlugin {
     fn build(&self, app: &mut App) {
         app.init_collection::<ImageAssets>()
-            .init_resource::<PreloadResource>()
             .add_plugins((KayakContextPlugin, KayakWidgets))
             .add_systems(Startup, setup_kayak_ui)
             .add_systems(Startup, setup_hud)
@@ -61,27 +58,36 @@ pub fn setup_kayak_ui(
             <HudBundle>
                 <HudProps/>
             </HudBundle>
-            //<MainMenuBackgroundBundle/>
+            <MainMenuBundle>
+                <MainMenuProps/>
+            </MainMenuBundle>
         </KayakAppBundle>
     };
 
-    // Menu background
-    // widget_context.add_widget_data::<MainMenuBackgroundProps, EmptyState>();
-    // widget_context.add_widget_system(
-    //     MainMenuBackgroundProps::default().get_name(),
-    //     widget_update::<MainMenuBackgroundProps, EmptyState>,
-    //     main_menu_background_render,
-    // );
+    // Main Menu ##########################################################
+    widget_context.add_widget_data::<MainMenuProps, GameState>();
+    widget_context.add_widget_system(
+        MainMenuProps::default().get_name(),
+        widget_update::<MainMenuProps, GameState>,
+        main_menu_render,
+    );
+    // Main Menu Backgroud
+    widget_context.add_widget_data::<MainMenuProps, GameState>();
+    widget_context.add_widget_system(
+        MainMenuProps::default().get_name(),
+        widget_update::<MainMenuProps, GameState>,
+        main_menu_background_render,
+    );
 
-    // // Menu buttons
-    // widget_context.add_widget_data::<MainMenuButton, ButtonState>();
-    // widget_context.add_widget_system(
-    //     MainMenuButton::default().get_name(),
-    //     widget_update::<MainMenuButton, ButtonState>,
-    //     main_menu_button_render,
-    // );
+    // Main Menu buttons
+    widget_context.add_widget_data::<MainMenuButton, ButtonState>();
+    widget_context.add_widget_system(
+        MainMenuButton::default().get_name(),
+        widget_update::<MainMenuButton, ButtonState>,
+        main_menu_button_render,
+    );
 
-    // player hud #####################################################
+    // player hud ##########################################################
     widget_context.add_widget_data::<HudProps, EmptyState>();
     widget_context.add_widget_system(
         HudProps::default().get_name(),

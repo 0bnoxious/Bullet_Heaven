@@ -4,18 +4,18 @@ use kayak_ui::{
     widgets::{KImage, KImageBundle, NinePatch, NinePatchBundle},
 };
 
-use crate::ui::main_menu::button::{MainMenuButton, MainMenuButtonBundle};
+use crate::ui::main_menu::{
+    action::handle_click_main_menu_exit,
+    button::{MainMenuButton, MainMenuButtonBundle},
+    BUTTON_TEXT_EXIT_GAME, BUTTON_TEXT_NEW_GAME, BUTTON_TEXT_SETTINGS,
+};
 
-use super::assets::ImageAssets;
-
-#[derive(Default, Clone, PartialEq, Component)]
-pub struct MainMenuBackgroundProps {}
-
-impl Widget for MainMenuBackgroundProps {}
+use super::{assets::ImageAssets, MainMenuProps};
 
 #[derive(Bundle)]
 pub struct MainMenuBackgroundBundle {
     pub styles: KStyle,
+    pub children: KChildren,
     pub on_event: OnEvent,
     pub widget_name: WidgetName,
 }
@@ -27,7 +27,8 @@ impl Default for MainMenuBackgroundBundle {
                 ..Default::default()
             },
             on_event: OnEvent::default(),
-            widget_name: MainMenuBackgroundProps::default().get_name(),
+            widget_name: MainMenuProps::default().get_name(),
+            children: KChildren::default(),
         }
     }
 }
@@ -38,14 +39,6 @@ pub fn main_menu_background_render(
     mut commands: Commands,
     images: Res<ImageAssets>,
 ) -> bool {
-    let handle_click_close = OnEvent::new(
-        move |In(_entity): In<Entity>, event: ResMut<KEvent>, mut exit: EventWriter<AppExit>| {
-            if let EventType::Click(..) = event.event_type {
-                exit.send(AppExit);
-            }
-        },
-    );
-
     let parent_id = Some(entity);
     rsx! {
         <NinePatchBundle
@@ -88,11 +81,11 @@ pub fn main_menu_background_render(
                     ..KStyle::default()
                 }}
             />
-            <MainMenuButtonBundle button={MainMenuButton { text: "Play".into() }} />
-            <MainMenuButtonBundle button={MainMenuButton { text: "Options".into() }} />
+            <MainMenuButtonBundle button={MainMenuButton { text: BUTTON_TEXT_NEW_GAME.into() }} />
+            <MainMenuButtonBundle button={MainMenuButton { text: BUTTON_TEXT_SETTINGS.into() }} />
             <MainMenuButtonBundle
-                button={MainMenuButton { text: "Quit".into() }}
-                on_event={handle_click_close}
+                button={MainMenuButton { text: BUTTON_TEXT_EXIT_GAME.into() }}
+                on_event={handle_click_main_menu_exit()}
             />
         </NinePatchBundle>
     };

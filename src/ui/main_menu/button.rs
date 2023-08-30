@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 use kayak_ui::prelude::{widgets::*, *};
 
+use crate::ui::main_menu::action::handle_button_hovering;
+
+use super::assets::ImageAssets;
+
 #[derive(Default, Clone, PartialEq, Component)]
 pub struct MainMenuButton {
     pub text: String,
@@ -35,16 +39,14 @@ pub fn main_menu_button_render(
     In(entity): In<Entity>,
     widget_context: Res<KayakWidgetContext>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     menu_button_query: Query<&MainMenuButton>,
     state_query: Query<&ButtonState>,
+    images: Res<ImageAssets>,
 ) -> bool {
     let state_entity =
         widget_context.use_state(&mut commands, entity, ButtonState { hovering: false });
 
     let button_text = menu_button_query.get(entity).unwrap().text.clone();
-    let button_image = asset_server.load("main_menu/button.png");
-    let button_image_hover = asset_server.load("main_menu/button_hover.png");
 
     let on_event = OnEvent::new(
         move |In(_entity): In<Entity>,
@@ -66,17 +68,11 @@ pub fn main_menu_button_render(
     );
 
     if let Ok(button_state) = state_query.get(state_entity) {
-        let button_image_handle = if button_state.hovering {
-            button_image_hover
-        } else {
-            button_image
-        };
-
         let parent_id = Some(entity);
         rsx! {
             <NinePatchBundle
                 nine_patch={NinePatch {
-                    handle: button_image_handle,
+                    handle: handle_button_hovering(button_state, images),
                     border: Edge::all(10.0),
                 }}
                 styles={KStyle {
@@ -106,9 +102,4 @@ pub fn main_menu_button_render(
         };
     }
     true
-}
-
-#[derive(Default, Resource)]
-pub struct PreloadResource {
-    pub images: Vec<Handle<Image>>,
 }

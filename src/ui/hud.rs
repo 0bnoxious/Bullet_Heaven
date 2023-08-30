@@ -51,6 +51,7 @@ impl Default for HudBundle {
     }
 }
 
+// to avoid rendering every frame, we use another timer
 pub fn setup_hud(mut commands: Commands) {
     commands.spawn(HudWaveTimerUpdate {
         timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),

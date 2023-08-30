@@ -8,7 +8,7 @@ use crate::ui::main_menu::background::{
 };
 use crate::ui::main_menu::button::MainMenuButtonBundle;
 use crate::ui::{
-    hud::wave_timer::{hud_wave_timer_render, HudWaveTimerBundle, HudWaveTimerProps},
+    hud::wave_timer::{hud_wave_timer_render, HudWaveTimerBundle},
     main_menu::button::{main_menu_button_render, MainMenuButton},
 };
 
@@ -59,7 +59,7 @@ pub fn setup_kayak_ui(
     rsx! {
         <KayakAppBundle>
             <HudBundle>
-                <HudWaveTimerProps/>
+                <HudProps/>
             </HudBundle>
             //<MainMenuBackgroundBundle/>
         </KayakAppBundle>
@@ -90,10 +90,10 @@ pub fn setup_kayak_ui(
     );
 
     // wave timer
-    widget_context.add_widget_data::<HudWaveTimerProps, EmptyState>();
+    widget_context.add_widget_data::<HudProps, EmptyState>();
     widget_context.add_widget_system(
-        HudWaveTimerProps::default().get_name(),
-        widget_update::<HudWaveTimerProps, EmptyState>,
+        HudProps::default().get_name(),
+        widget_update::<HudProps, EmptyState>,
         hud_wave_timer_render,
     );
 

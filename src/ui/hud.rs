@@ -12,17 +12,11 @@ use self::wave_timer::HudWaveTimerUpdate;
 
 pub mod wave_timer;
 
-#[derive(Debug, Clone, PartialEq, Eq, Component)]
-pub enum Menu {
-    Main,
-    Settings,
-}
-
 #[derive(Component, Clone, PartialEq)]
 pub struct HudProps {
-    game_state: GameState,
-    wave_time: u32,
-    player_hp: u32,
+    pub game_state: GameState,
+    pub wave_time: u32,
+    pub player_hp: u32,
 }
 
 impl Default for HudProps {

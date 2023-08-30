@@ -9,7 +9,7 @@ use crate::projectile::Damage;
 
 pub const STARTING_GAME_STATE: GameState = GameState::Menu;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub enum GameState {
     Menu,
     Playing,

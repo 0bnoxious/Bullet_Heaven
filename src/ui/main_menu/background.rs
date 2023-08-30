@@ -9,30 +9,30 @@ use crate::ui::main_menu::button::{MainMenuButton, MainMenuButtonBundle};
 use super::assets::ImageAssets;
 
 #[derive(Default, Clone, PartialEq, Component)]
-pub struct MenuBackground {}
+pub struct MainMenuBackgroundProps {}
 
-impl Widget for MenuBackground {}
+impl Widget for MainMenuBackgroundProps {}
 
 #[derive(Bundle)]
-pub struct MenuBackgroundBundle {
+pub struct MainMenuBackgroundBundle {
     pub styles: KStyle,
     pub on_event: OnEvent,
     pub widget_name: WidgetName,
 }
 
-impl Default for MenuBackgroundBundle {
+impl Default for MainMenuBackgroundBundle {
     fn default() -> Self {
         Self {
             styles: KStyle {
                 ..Default::default()
             },
             on_event: OnEvent::default(),
-            widget_name: MenuBackground::default().get_name(),
+            widget_name: MainMenuBackgroundProps::default().get_name(),
         }
     }
 }
 
-pub fn menu_background_render(
+pub fn main_menu_background_render(
     In(entity): In<Entity>,
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,

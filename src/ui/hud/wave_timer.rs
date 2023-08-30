@@ -3,7 +3,7 @@ use kayak_ui::{prelude::*, widgets::*};
 
 #[derive(Bundle)]
 pub struct HudWaveTimerBundle {
-    pub props: HudWaveTimerWidget,
+    pub props: HudWaveTimerProps,
     pub widget_name: WidgetName,
 }
 
@@ -11,17 +11,17 @@ impl Default for HudWaveTimerBundle {
     fn default() -> Self {
         Self {
             props: Default::default(),
-            widget_name: HudWaveTimerWidget::default().get_name(),
+            widget_name: HudWaveTimerProps::default().get_name(),
         }
     }
 }
 
 #[derive(Component, Clone, PartialEq, Default)]
-pub struct HudWaveTimerWidget {
+pub struct HudWaveTimerProps {
     pub wave_time: u32,
 }
 
-impl Widget for HudWaveTimerWidget {}
+impl Widget for HudWaveTimerProps {}
 
 #[derive(Component)]
 pub struct HudWaveTimerUpdate {
@@ -30,7 +30,7 @@ pub struct HudWaveTimerUpdate {
 
 pub fn update_hud_wave_timer_value(
     mut hud_wave_timer_update_query: Query<&mut HudWaveTimerUpdate>,
-    mut hud_wave_timer_props_query: Query<&mut HudWaveTimerWidget, Without<PreviousWidget>>,
+    mut hud_wave_timer_props_query: Query<&mut HudWaveTimerProps, Without<PreviousWidget>>,
     time_res: Res<Time>,
 ) {
     for mut wave_timer_update in &mut hud_wave_timer_update_query {
@@ -47,7 +47,7 @@ pub fn hud_wave_timer_render(
     In(entity): In<Entity>,
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,
-    query: Query<&HudWaveTimerWidget>,
+    query: Query<&HudWaveTimerProps>,
 ) -> bool {
     // HudWaveTimerWidget is updated twice, idk why :(
     // this boolean is used to render the timer only once

@@ -2,12 +2,13 @@ use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollectionApp;
 use kayak_ui::{prelude::*, widgets::*, CameraUIKayak};
 
+use crate::ui::hud::{hud_render, HudBundle, HudProps};
 use crate::ui::main_menu::background::{
-    menu_background_render, MenuBackground, MenuBackgroundBundle,
+    main_menu_background_render, MainMenuBackgroundBundle, MainMenuBackgroundProps,
 };
 use crate::ui::main_menu::button::MainMenuButtonBundle;
 use crate::ui::{
-    hud::wave_timer::{hud_wave_timer_render, HudWaveTimerBundle, HudWaveTimerWidget},
+    hud::wave_timer::{hud_wave_timer_render, HudWaveTimerBundle, HudWaveTimerProps},
     main_menu::button::{main_menu_button_render, MainMenuButton},
 };
 
@@ -20,6 +21,12 @@ pub mod hud;
 pub mod main_menu;
 pub mod settings;
 
+#[derive(Debug, Clone, PartialEq, Eq, Component)]
+pub enum Menu {
+    Main,
+    Settings,
+}
+
 pub struct KayakUiPlugin;
 
 impl Plugin for KayakUiPlugin {
@@ -29,7 +36,6 @@ impl Plugin for KayakUiPlugin {
             .add_plugins((KayakContextPlugin, KayakWidgets))
             .add_systems(Startup, setup_kayak_ui)
             .add_systems(Startup, setup_hud)
-            //.add_systems(Startup, setup_game_menu)
             .add_systems(Update, update_hud_wave_timer_value);
     }
 }
@@ -52,32 +58,42 @@ pub fn setup_kayak_ui(
     let parent_id = None;
     rsx! {
         <KayakAppBundle>
-            <HudWaveTimerBundle/>
-            <MenuBackgroundBundle/>
+            <HudBundle>
+                <HudWaveTimerProps/>
+            </HudBundle>
+            //<MainMenuBackgroundBundle/>
         </KayakAppBundle>
     };
 
     // Menu background
-    widget_context.add_widget_data::<MenuBackground, EmptyState>();
+    // widget_context.add_widget_data::<MainMenuBackgroundProps, EmptyState>();
+    // widget_context.add_widget_system(
+    //     MainMenuBackgroundProps::default().get_name(),
+    //     widget_update::<MainMenuBackgroundProps, EmptyState>,
+    //     main_menu_background_render,
+    // );
+
+    // // Menu buttons
+    // widget_context.add_widget_data::<MainMenuButton, ButtonState>();
+    // widget_context.add_widget_system(
+    //     MainMenuButton::default().get_name(),
+    //     widget_update::<MainMenuButton, ButtonState>,
+    //     main_menu_button_render,
+    // );
+
+    // player hud #####################################################
+    widget_context.add_widget_data::<HudProps, EmptyState>();
     widget_context.add_widget_system(
-        MenuBackground::default().get_name(),
-        widget_update::<MenuBackground, EmptyState>,
-        menu_background_render,
+        HudProps::default().get_name(),
+        widget_update::<HudProps, EmptyState>,
+        hud_render,
     );
 
-    // Menu buttons
-    widget_context.add_widget_data::<MainMenuButton, ButtonState>();
+    // wave timer
+    widget_context.add_widget_data::<HudWaveTimerProps, EmptyState>();
     widget_context.add_widget_system(
-        MainMenuButton::default().get_name(),
-        widget_update::<MainMenuButton, ButtonState>,
-        main_menu_button_render,
-    );
-
-    // player hud
-    widget_context.add_widget_data::<HudWaveTimerWidget, EmptyState>();
-    widget_context.add_widget_system(
-        HudWaveTimerWidget::default().get_name(),
-        widget_update::<HudWaveTimerWidget, EmptyState>,
+        HudWaveTimerProps::default().get_name(),
+        widget_update::<HudWaveTimerProps, EmptyState>,
         hud_wave_timer_render,
     );
 

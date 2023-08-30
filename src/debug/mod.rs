@@ -23,7 +23,6 @@ pub struct DebugPlugin;
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<UiState>()
-            //.init_resource::<EguiUserTextures>()
             .add_plugins(EguiPlugin)
             .add_systems(Startup, initialize_uistate)
             .add_systems(

@@ -12,6 +12,8 @@ use crate::ui::main_menu::{
 
 use super::{assets::ImageAssets, MainMenuProps};
 
+const MENU_SIZE_PIXEL: f32 = 512.;
+
 #[derive(Bundle)]
 pub struct MainMenuBackgroundBundle {
     pub styles: KStyle,
@@ -40,25 +42,29 @@ pub fn main_menu_background_render(
     images: Res<ImageAssets>,
 ) -> bool {
     let parent_id = Some(entity);
+
     rsx! {
         <NinePatchBundle
             nine_patch={NinePatch {
                 handle: images.background_panel.clone(),
-                border: Edge::all(25.0),
+                border: Edge::all(171.),
             }}
             styles={KStyle {
-                width: Units::Pixels(350.0).into(),
-                height: Units::Pixels(512.0).into(),
+                width: Units::Pixels(MENU_SIZE_PIXEL).into(),
+                height: Units::Pixels(MENU_SIZE_PIXEL).into(),
+                // width: Units::Percentage(100.0).into(),
+                // height: Units::Percentage(100.0).into(),
                 left: Units::Stretch(1.0).into(),
                 right: Units::Stretch(1.0).into(),
                 top: Units::Stretch(1.0).into(),
                 bottom: Units::Stretch(1.0).into(),
-                padding: Edge::new(
+
+                /*padding: Edge::new(
                     Units::Pixels(20.0),
                     Units::Pixels(20.0),
                     Units::Pixels(50.0),
                     Units::Pixels(20.0),
-                ).into(),
+                ).into(),*/
                 ..KStyle::default()
             }}
         >

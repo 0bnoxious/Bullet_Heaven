@@ -63,7 +63,7 @@ pub fn main_menu_render(
 ) -> bool {
     let parent_id = Some(entity);
     rsx! {
-        <MainMenuBackgroundBundle>
+        <MainMenuBackgroundBundle >
             <MainMenuButtonBundle/>
         </MainMenuBackgroundBundle>
 

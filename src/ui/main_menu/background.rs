@@ -1,8 +1,5 @@
 use bevy::{app::AppExit, prelude::*};
-use kayak_ui::{
-    prelude::*,
-    widgets::{KImage, KImageBundle, NinePatch, NinePatchBundle},
-};
+use kayak_ui::{prelude::*, widgets::*};
 
 use crate::ui::main_menu::{
     action::handle_click_main_menu_exit,
@@ -12,6 +9,7 @@ use crate::ui::main_menu::{
 
 use super::{assets::ImageAssets, MainMenuProps};
 
+const MENU_BACKGROUND_PIXEL: f32 = 1024.;
 const MENU_SIZE_PIXEL: f32 = 512.;
 
 #[derive(Bundle)]
@@ -40,33 +38,33 @@ pub fn main_menu_background_render(
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,
     images: Res<ImageAssets>,
+    mut windows: Query<&mut Window>,
 ) -> bool {
+    let window = windows.single();
     let parent_id = Some(entity);
 
     rsx! {
         <NinePatchBundle
-            nine_patch={NinePatch {
-                handle: images.background_panel.clone(),
-                border: Edge::all(171.),
-            }}
-            styles={KStyle {
-                width: Units::Pixels(MENU_SIZE_PIXEL).into(),
-                height: Units::Pixels(MENU_SIZE_PIXEL).into(),
-                // width: Units::Percentage(100.0).into(),
-                // height: Units::Percentage(100.0).into(),
-                left: Units::Stretch(1.0).into(),
-                right: Units::Stretch(1.0).into(),
-                top: Units::Stretch(1.0).into(),
-                bottom: Units::Stretch(1.0).into(),
+        nine_patch={NinePatch {
+            handle: images.background_panel.clone(),
+            border: Edge::all(0.),
+        }}
+        styles={KStyle {
+            width: Units::Pixels(MENU_SIZE_PIXEL).into(),
+            height: Units::Pixels(MENU_SIZE_PIXEL).into(),
+            left: Units::Stretch(1.0).into(),
+            right: Units::Stretch(1.0).into(),
+            top: Units::Stretch(1.0).into(),
+            bottom: Units::Stretch(1.0).into(),
 
-                /*padding: Edge::new(
-                    Units::Pixels(20.0),
-                    Units::Pixels(20.0),
-                    Units::Pixels(50.0),
-                    Units::Pixels(20.0),
-                ).into(),*/
-                ..KStyle::default()
-            }}
+            padding: Edge::new(
+                Units::Pixels(20.0),
+                Units::Pixels(20.0),
+                Units::Pixels(50.0),
+                Units::Pixels(20.0),
+            ).into(),
+            ..KStyle::default()
+        }}
         >
             <KImageBundle
                 image={KImage(images.player.clone())}

@@ -7,6 +7,7 @@ use super::HudProps;
 pub struct HudWaveTimerBundle {
     pub props: HudProps,
     pub widget_name: WidgetName,
+    pub styles: KStyle,
 }
 
 impl Default for HudWaveTimerBundle {
@@ -14,6 +15,7 @@ impl Default for HudWaveTimerBundle {
         Self {
             props: Default::default(),
             widget_name: HudProps::default().get_name(),
+            styles: Default::default(),
         }
     }
 }
@@ -49,6 +51,15 @@ pub fn hud_wave_timer_render(
     let mut rendered = false;
     query.iter().for_each(|widget| {
         if !rendered {
+            let test_style = KStyle {
+                bottom: StyleProp::Value(Units::Stretch(0.0)),
+                layout_type: StyleProp::Value(LayoutType::Column),
+                top: StyleProp::Value(Units::Stretch(0.0)),
+                height: StyleProp::Value(Units::Pixels(0.0)),
+                width: StyleProp::Value(Units::Pixels(0.0)),
+                ..Default::default()
+            };
+
             let parent_id = Some(entity);
             let mut secs = widget.wave_time;
             let mins = secs / 60;
@@ -56,13 +67,15 @@ pub fn hud_wave_timer_render(
             let string = format!("{mins:0>2}:{secs:0>2}");
             rsx! {
                 <TextWidgetBundle
+                    styles={test_style}
                     text={TextProps {
                         content: string,
                         size: 20.0,
                         alignment: Alignment::Middle,
                         ..Default::default()
                     }}
-                />
+                >
+                </TextWidgetBundle>
             };
 
             rendered = true;

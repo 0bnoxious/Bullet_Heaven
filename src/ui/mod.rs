@@ -53,9 +53,18 @@ pub fn setup_kayak_ui(
     widget_context.add_plugin(KayakWidgetsContextPlugin);
 
     let parent_id = None;
+
+    let test_style = KStyle {
+        bottom: StyleProp::Value(Units::Stretch(1.0)),
+        layout_type: StyleProp::Value(LayoutType::Column),
+        top: StyleProp::Value(Units::Stretch(1.0)),
+        width: StyleProp::Value(Units::Pixels(0.0)),
+        ..Default::default()
+    };
+
     rsx! {
         <KayakAppBundle>
-            <HudBundle>
+            <HudBundle styles={test_style}>
                 <HudProps/>
             </HudBundle>
             <MainMenuBundle>

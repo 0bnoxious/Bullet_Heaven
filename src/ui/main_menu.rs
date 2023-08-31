@@ -1,5 +1,5 @@
 use bevy::{app::AppExit, prelude::*};
-use kayak_ui::prelude::*;
+use kayak_ui::{prelude::*, widgets::*};
 
 use crate::{
     global::{GameState, STARTING_GAME_STATE},
@@ -63,10 +63,9 @@ pub fn main_menu_render(
 ) -> bool {
     let parent_id = Some(entity);
     rsx! {
-        <MainMenuBackgroundBundle >
+        <MainMenuBackgroundBundle>
             <MainMenuButtonBundle/>
         </MainMenuBackgroundBundle>
-
     };
 
     // The boolean returned here tells kayak UI to update the tree. You can avoid tree updates by

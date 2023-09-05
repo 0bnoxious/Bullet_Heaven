@@ -65,6 +65,7 @@ impl Default for MainMenuBundle {
                 left: Units::Percentage(20.).into(),
                 ..Default::default()
             }),
+
             children: KChildren::default(),
             on_event: OnEvent::default(),
             widget_name: MainMenuProps::default().get_name(),

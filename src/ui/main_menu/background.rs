@@ -1,4 +1,4 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::{app::AppExit, asset::Asset, prelude::*};
 use kayak_ui::{prelude::*, widgets::*};
 
 use crate::ui::main_menu::{
@@ -35,14 +35,15 @@ pub fn main_menu_background_render(
     In(entity): In<Entity>,
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,
-    images: Res<ImageAssets>,
+    //images: Res<Assets<Image>>,
+    images_res: Res<ImageAssets>,
 ) -> bool {
     let parent_id = Some(entity);
 
     rsx! {
         <NinePatchBundle
         nine_patch={NinePatch {
-            handle: images.background_panel.clone(),
+            handle: images_res.background_panel.clone(),
             border: Edge::all(0.),
         }}
         styles={KStyle {
@@ -63,18 +64,23 @@ pub fn main_menu_background_render(
         }}
         >
             <KImageBundle
-                image={KImage(images.player.clone())}
+                image={KImage(images_res.player.clone())}
                 styles={KStyle {
-                    width: Units::Pixels(310.0).into(),
-                    height: Units::Pixels(104.0).into(),
                     top: Units::Pixels(25.0).into(),
-                    bottom: Units::Pixels(25.0).into(),
+                    // left: Units::Percentage(30.0).into(),
+                    left: Units::Stretch(1.0).into(),
+                    right: Units::Stretch(1.0).into(),
+                    position_type: KPositionType::ParentDirected.into(),
+                    width: StyleProp::Value(Units::Percentage(40.)),
+                    height: StyleProp::Value(Units::Percentage(40.)),
                     ..KStyle::default()
                 }}
             />
             <KImageBundle
-                image={KImage(images.tug_o_war_logo.clone())}
+                image={KImage(images_res.tug_o_war_logo.clone())}
                 styles={KStyle {
+                    top: Units::Pixels(25.0).into(),
+                    left: Units::Percentage(20.0).into(),
                     width: Units::Pixels(310.0).into(),
                     height: Units::Pixels(78.0).into(),
                     bottom: Units::Stretch(1.0).into(),

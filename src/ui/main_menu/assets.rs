@@ -3,7 +3,7 @@ use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
 pub struct ImageAssets {
-    #[asset(path = "main_menu/background_panel2_1024.png")]
+    #[asset(path = "main_menu/background_panel4.png")]
     pub background_panel: Handle<Image>,
 
     #[asset(path = "main_menu/tug_o_war.png")]

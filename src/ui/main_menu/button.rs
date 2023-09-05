@@ -25,6 +25,7 @@ impl Default for MainMenuButtonBundle {
         Self {
             button: Default::default(),
             styles: KStyle {
+                position_type: KPositionType::ParentDirected.into(),
                 bottom: Units::Pixels(20.0).into(),
                 cursor: KCursorIcon(CursorIcon::Hand).into(),
                 ..Default::default()

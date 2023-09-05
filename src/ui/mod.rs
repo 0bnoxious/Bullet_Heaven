@@ -54,17 +54,9 @@ pub fn setup_kayak_ui(
 
     let parent_id = None;
 
-    let test_style = KStyle {
-        bottom: StyleProp::Value(Units::Stretch(1.0)),
-        layout_type: StyleProp::Value(LayoutType::Column),
-        top: StyleProp::Value(Units::Stretch(1.0)),
-        width: StyleProp::Value(Units::Pixels(0.0)),
-        ..Default::default()
-    };
-
     rsx! {
         <KayakAppBundle>
-            <HudBundle styles={test_style}>
+            <HudBundle>
                 <HudProps/>
             </HudBundle>
             <MainMenuBundle>

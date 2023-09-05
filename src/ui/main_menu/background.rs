@@ -23,9 +23,7 @@ pub struct MainMenuBackgroundBundle {
 impl Default for MainMenuBackgroundBundle {
     fn default() -> Self {
         Self {
-            styles: KStyle {
-                ..Default::default()
-            },
+            styles: KStyle::default(),
             on_event: OnEvent::default(),
             widget_name: MainMenuProps::default().get_name(),
             children: KChildren::default(),
@@ -38,9 +36,7 @@ pub fn main_menu_background_render(
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,
     images: Res<ImageAssets>,
-    mut windows: Query<&mut Window>,
 ) -> bool {
-    let window = windows.single();
     let parent_id = Some(entity);
 
     rsx! {
@@ -50,13 +46,13 @@ pub fn main_menu_background_render(
             border: Edge::all(0.),
         }}
         styles={KStyle {
+            position_type: KPositionType::ParentDirected.into(),
             width: Units::Pixels(MENU_SIZE_PIXEL).into(),
             height: Units::Pixels(MENU_SIZE_PIXEL).into(),
             left: Units::Stretch(1.0).into(),
             right: Units::Stretch(1.0).into(),
             top: Units::Stretch(1.0).into(),
             bottom: Units::Stretch(1.0).into(),
-
             padding: Edge::new(
                 Units::Pixels(20.0),
                 Units::Pixels(20.0),

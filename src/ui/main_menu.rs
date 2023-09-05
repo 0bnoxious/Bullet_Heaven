@@ -39,7 +39,8 @@ impl Widget for MainMenuProps {}
 #[derive(Bundle)]
 pub struct MainMenuBundle {
     pub props: MainMenuProps,
-    pub styles: KStyle,
+    //pub styles: KStyle,
+    pub computed_styles: ComputedStyles,
     pub children: KChildren,
     pub on_event: OnEvent,
     pub widget_name: WidgetName,
@@ -48,7 +49,22 @@ impl Default for MainMenuBundle {
     fn default() -> Self {
         Self {
             props: MainMenuProps::default(),
-            styles: KStyle::default(),
+            // styles: KStyle {
+            //     position_type: KPositionType::SelfDirected.into(),
+            //     width: StyleProp::Value(Units::Percentage(60.)),
+            //     height: StyleProp::Value(Units::Percentage(60.)),
+            //     top: Units::Percentage(20.).into(),
+            //     left: Units::Percentage(20.).into(),
+            //     ..Default::default()
+            // },
+            computed_styles: ComputedStyles(KStyle {
+                position_type: KPositionType::SelfDirected.into(),
+                width: StyleProp::Value(Units::Percentage(60.)),
+                height: StyleProp::Value(Units::Percentage(60.)),
+                top: Units::Percentage(20.).into(),
+                left: Units::Percentage(20.).into(),
+                ..Default::default()
+            }),
             children: KChildren::default(),
             on_event: OnEvent::default(),
             widget_name: MainMenuProps::default().get_name(),

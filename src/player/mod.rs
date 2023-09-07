@@ -5,11 +5,13 @@ use crate::global::*;
 
 use self::{
     action::move_player,
-    input::{player_walks, PlayerAction, PlayerWalk},
+    event::{player_walked, PlayerWalkEvent},
+    input::PlayerAction,
     spawner::spawn_player,
 };
 
 pub mod action;
+pub mod event;
 pub mod input;
 pub mod spawner;
 
@@ -27,8 +29,8 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InputManagerPlugin::<PlayerAction>::default())
             .add_systems(Startup, spawn_player)
-            .add_systems(Update, (move_player, player_walks))
-            .add_event::<PlayerWalk>();
+            .add_systems(Update, (move_player, player_walked))
+            .add_event::<PlayerWalkEvent>();
     }
 }
 

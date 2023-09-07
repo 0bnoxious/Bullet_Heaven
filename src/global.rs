@@ -7,15 +7,6 @@ use rand::{rngs::ThreadRng, Rng};
 
 use crate::projectile::Damage;
 
-pub const STARTING_GAME_STATE: GameState = GameState::Menu;
-
-#[derive(Component, Debug, Clone, Copy, PartialEq)]
-pub enum GameState {
-    Menu,
-    Playing,
-    Paused,
-}
-
 #[derive(Component, Debug)]
 pub struct Stats {
     pub hit_points: i32,

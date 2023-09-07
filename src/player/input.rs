@@ -1,11 +1,8 @@
 use bevy::prelude::*;
+use leafwing_input_manager::orientation::Direction;
 use leafwing_input_manager::prelude::*;
-use leafwing_input_manager::{errors::NearlySingularConversion, orientation::Direction};
-
-use crate::global::AimType;
 
 use super::spawner::PlayerBundle;
-use super::Player;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
@@ -22,7 +19,7 @@ pub enum PlayerAction {
 
 impl PlayerAction {
     // Lists like this can be very useful for quickly matching subsets of actions
-    const DIRECTIONS: [Self; 4] = [
+    pub const DIRECTIONS: [Self; 4] = [
         PlayerAction::Up,
         PlayerAction::Down,
         PlayerAction::Left,
@@ -79,53 +76,5 @@ impl PlayerBundle {
         input_map.insert(GamepadButtonType::LeftTrigger2, Ultimate);
 
         input_map
-    }
-}
-
-#[derive(Event)]
-pub struct PlayerWalk {
-    pub direction: Direction,
-}
-
-#[derive(Event)]
-pub struct PlayerAimSwap {
-    pub aim: AimType,
-}
-
-pub fn player_walks(
-    query: Query<&ActionState<PlayerAction>, With<Player>>,
-    mut event_writer: EventWriter<PlayerWalk>,
-) {
-    let action_state = query.single();
-
-    let mut direction_vector = Vec2::ZERO;
-
-    for input_direction in PlayerAction::DIRECTIONS {
-        if action_state.pressed(input_direction) {
-            if let Some(direction) = input_direction.direction() {
-                // Sum the directions as 2D vectors
-                direction_vector += Vec2::from(direction);
-            }
-        }
-    }
-
-    // Then reconvert at the end, normalizing the magnitude
-    let net_direction: Result<Direction, NearlySingularConversion> = direction_vector.try_into();
-
-    if let Ok(direction) = net_direction {
-        event_writer.send(PlayerWalk { direction });
-    }
-}
-
-pub fn player_swaps_aim(
-    query: Query<&ActionState<PlayerAction>, With<Player>>,
-    mut player_aim_query: Query<&AimType, With<Player>>,
-    mut event_writer: EventWriter<PlayerAimSwap>,
-) {
-    let action_state = query.single();
-
-    if action_state.just_pressed(PlayerAction::Ability1) {
-        let swapped_aim: AimType = player_aim_query.single_mut().next();
-        event_writer.send(PlayerAimSwap { aim: swapped_aim });
     }
 }

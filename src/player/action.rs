@@ -3,10 +3,13 @@ use bevy_xpbd_2d::prelude::Position;
 
 use crate::global::{AimType, Stats};
 
-use super::{input::*, Player};
+use super::{
+    event::{PlayerAimSwapEvent, PlayerWalkEvent},
+    Player,
+};
 
 pub fn move_player(
-    mut events: EventReader<PlayerWalk>,
+    mut events: EventReader<PlayerWalkEvent>,
     mut player_query: Query<(&mut Position, &Stats), With<Player>>,
 ) {
     for player_walk_event in events.iter() {
@@ -18,7 +21,7 @@ pub fn move_player(
 }
 
 pub fn swap_player_aim(
-    mut player_aim_swap_events: EventReader<PlayerAimSwap>,
+    mut player_aim_swap_events: EventReader<PlayerAimSwapEvent>,
     mut aim_query: Query<&mut AimType, With<Player>>,
 ) {
     for _ in player_aim_swap_events.iter() {

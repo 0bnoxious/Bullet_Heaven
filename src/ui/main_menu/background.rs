@@ -2,7 +2,7 @@ use bevy::{app::AppExit, asset::Asset, prelude::*};
 use kayak_ui::{prelude::*, widgets::*};
 
 use crate::ui::main_menu::{
-    action::handle_click_main_menu_exit,
+    action::{handle_click_main_menu_exit, handle_click_main_menu_new_game},
     button::{MainMenuButton, MainMenuButtonBundle},
     BUTTON_TEXT_EXIT_GAME, BUTTON_TEXT_NEW_GAME, BUTTON_TEXT_SETTINGS,
 };
@@ -67,7 +67,6 @@ pub fn main_menu_background_render(
                 image={KImage(images_res.player.clone())}
                 styles={KStyle {
                     top: Units::Pixels(25.0).into(),
-                    // left: Units::Percentage(30.0).into(),
                     left: Units::Stretch(1.0).into(),
                     right: Units::Stretch(1.0).into(),
                     position_type: KPositionType::ParentDirected.into(),
@@ -87,7 +86,10 @@ pub fn main_menu_background_render(
                     ..KStyle::default()
                 }}
             />
-            <MainMenuButtonBundle button={MainMenuButton { text: BUTTON_TEXT_NEW_GAME.into() }} />
+            <MainMenuButtonBundle
+                button={MainMenuButton { text: BUTTON_TEXT_NEW_GAME.into() }}
+                on_event={handle_click_main_menu_new_game()}
+            />
             <MainMenuButtonBundle button={MainMenuButton { text: BUTTON_TEXT_SETTINGS.into() }} />
             <MainMenuButtonBundle
                 button={MainMenuButton { text: BUTTON_TEXT_EXIT_GAME.into() }}

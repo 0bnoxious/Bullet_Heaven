@@ -2,7 +2,7 @@ use bevy::{app::AppExit, prelude::*};
 use kayak_ui::{prelude::*, widgets::*};
 
 use crate::{
-    global::{GameState, STARTING_GAME_STATE},
+    game::state::{GameState, STARTING_GAME_STATE},
     ui::main_menu::{background::MainMenuBackgroundBundle, button::MainMenuButtonBundle},
 };
 
@@ -49,14 +49,6 @@ impl Default for MainMenuBundle {
     fn default() -> Self {
         Self {
             props: MainMenuProps::default(),
-            // styles: KStyle {
-            //     position_type: KPositionType::SelfDirected.into(),
-            //     width: StyleProp::Value(Units::Percentage(60.)),
-            //     height: StyleProp::Value(Units::Percentage(60.)),
-            //     top: Units::Percentage(20.).into(),
-            //     left: Units::Percentage(20.).into(),
-            //     ..Default::default()
-            // },
             computed_styles: ComputedStyles(KStyle {
                 position_type: KPositionType::SelfDirected.into(),
                 width: StyleProp::Value(Units::Percentage(60.)),

@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use kayak_ui::prelude::*;
 
 use crate::{
-    global::{GameState, STARTING_GAME_STATE},
+    game::state::{GameState, STARTING_GAME_STATE},
     ui::hud::wave_timer::HudWaveTimerBundle,
 };
 

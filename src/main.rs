@@ -1,4 +1,5 @@
 pub mod debug;
+pub mod game;
 pub mod global;
 pub mod map;
 pub mod mob;
@@ -12,6 +13,7 @@ use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
 use debug::DebugPlugin;
+use game::state::{GameState, GameStatePlugin};
 use global::*;
 
 use map::MapPlugin;
@@ -19,13 +21,14 @@ use mob::MobPlugin;
 use player::{spawner::*, PlayerPlugin};
 use projectile::ProjectilePlugin;
 use targeting::TargetingPlugin;
-use ui::{settings::SettingsPlugin, KayakUiPlugin};
+use ui::{setting::SettingsPlugin, KayakUiPlugin};
 use weapon::WeaponPlugin;
 
 fn main() {
     App::new()
         .insert_resource(SubstepCount(2))
         .insert_resource(Gravity(Vec2::ZERO))
+        .add_state::<GameState>()
         .add_plugins((
             DefaultPlugins.set(set_primary_window()),
             PhysicsPlugins::default(),
@@ -38,6 +41,7 @@ fn main() {
             KayakUiPlugin,
             SettingsPlugin,
             DebugPlugin,
+            GameStatePlugin,
             //WorldInspectorPlugin::default(),
         ))
         .add_systems(Update, (resolve_damage.before(respawn_player),))

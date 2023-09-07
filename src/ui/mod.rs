@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollectionApp;
 use kayak_ui::{prelude::*, widgets::*, CameraUIKayak};
 
-use crate::global::GameState;
+use crate::game::state::GameState;
 use crate::ui::hud::{hud_render, HudBundle, HudProps};
 use crate::ui::main_menu::background::main_menu_background_render;
 use crate::ui::main_menu::button::MainMenuButton;
@@ -17,7 +17,7 @@ use self::main_menu::assets::ImageAssets;
 
 pub mod hud;
 pub mod main_menu;
-pub mod settings;
+pub mod setting;
 
 #[derive(Debug, Clone, PartialEq, Eq, Component)]
 pub enum Menu {
@@ -66,17 +66,17 @@ pub fn setup_kayak_ui(
     };
 
     // Main Menu ##########################################################
-    widget_context.add_widget_data::<MainMenuProps, GameState>();
+    widget_context.add_widget_data::<MainMenuProps, EmptyState>();
     widget_context.add_widget_system(
         MainMenuProps::default().get_name(),
-        widget_update::<MainMenuProps, GameState>,
+        widget_update::<MainMenuProps, EmptyState>,
         main_menu_render,
     );
     // Main Menu Backgroud
-    widget_context.add_widget_data::<MainMenuProps, GameState>();
+    widget_context.add_widget_data::<MainMenuProps, EmptyState>();
     widget_context.add_widget_system(
         MainMenuProps::default().get_name(),
-        widget_update::<MainMenuProps, GameState>,
+        widget_update::<MainMenuProps, EmptyState>,
         main_menu_background_render,
     );
 

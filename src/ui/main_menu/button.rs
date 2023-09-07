@@ -15,7 +15,6 @@ impl Widget for MainMenuButton {}
 #[derive(Bundle)]
 pub struct MainMenuButtonBundle {
     pub button: MainMenuButton,
-    // pub styles: KStyle,
     pub computed_styles: ComputedStyles,
     pub on_event: OnEvent,
     pub widget_name: WidgetName,
@@ -25,13 +24,6 @@ impl Default for MainMenuButtonBundle {
     fn default() -> Self {
         Self {
             button: Default::default(),
-            // styles: KStyle {
-            //     position_type: KPositionType::ParentDirected.into(),
-            //     bottom: Units::Pixels(30.0).into(),
-            //     //bottom: Units::Stretch(1.0).into(),
-            //     cursor: KCursorIcon(CursorIcon::Hand).into(),
-            //     ..Default::default()
-            // },
             computed_styles: ComputedStyles(KStyle {
                 position_type: KPositionType::ParentDirected.into(),
                 //bottom: Units::Pixels(30.0).into(),

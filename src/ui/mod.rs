@@ -4,7 +4,7 @@ use kayak_ui::{prelude::*, widgets::*, CameraUIKayak};
 
 use crate::game::state::GameState;
 use crate::ui::hud::{hud_render, HudBundle, HudProps};
-use crate::ui::main_menu::background::main_menu_background_render;
+// use crate::ui::main_menu::background::main_menu_background_render;
 use crate::ui::main_menu::button::MainMenuButton;
 use crate::ui::main_menu::{main_menu_render, MainMenuBundle, MainMenuProps};
 use crate::ui::{
@@ -63,14 +63,6 @@ pub fn setup_kayak_ui(
         main_menu_render,
     );
 
-    // // Main Menu Backgroud
-    // widget_context.add_widget_data::<MainMenuProps, EmptyState>();
-    // widget_context.add_widget_system(
-    //     MainMenuProps::default().get_name(),
-    //     widget_update::<MainMenuProps, EmptyState>,
-    //     main_menu_background_render,
-    // );
-
     // Main Menu buttons
     widget_context.add_widget_data::<MainMenuButton, ButtonState>();
     widget_context.add_widget_system(
@@ -98,10 +90,8 @@ pub fn setup_kayak_ui(
     rsx! {
         <KayakAppBundle>
             <HudBundle>
-                <HudProps/>
             </HudBundle>
             <MainMenuBundle>
-                //<MainMenuProps/>
             </MainMenuBundle>
         </KayakAppBundle>
     };

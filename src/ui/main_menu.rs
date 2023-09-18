@@ -13,13 +13,11 @@ use self::assets::ImageAssets;
 
 pub mod action;
 pub mod assets;
-pub mod background;
 pub mod button;
 
 const BUTTON_TEXT_NEW_GAME: &str = "New Game";
 const BUTTON_TEXT_SETTINGS: &str = "Settings";
 const BUTTON_TEXT_EXIT_GAME: &str = "Exit Game";
-const MENU_BACKGROUND_PIXEL: f32 = 1024.;
 const MENU_SIZE_PIXEL: f32 = 512.;
 
 #[derive(Clone, PartialEq, Component)]
@@ -46,7 +44,6 @@ impl Widget for MainMenuProps {}
 #[derive(Bundle)]
 pub struct MainMenuBundle {
     pub props: MainMenuProps,
-    //pub styles: KStyle,
     pub computed_styles: ComputedStyles,
     pub children: KChildren,
     pub on_event: OnEvent,

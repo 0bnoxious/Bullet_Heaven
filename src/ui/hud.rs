@@ -34,7 +34,6 @@ impl Widget for HudProps {}
 #[derive(Bundle)]
 pub struct HudBundle {
     pub props: HudProps,
-    // pub styles: KStyle,
     pub computed_styles: ComputedStyles,
     pub children: KChildren,
     pub on_event: OnEvent,
@@ -44,15 +43,6 @@ impl Default for HudBundle {
     fn default() -> Self {
         Self {
             props: HudProps::default(),
-            // styles: KStyle {
-            //     position_type: KPositionType::SelfDirected.into(),
-            //     background_color: StyleProp::Value(Color::RED),
-            //     // width: StyleProp::Value(Units::Percentage(60.)),
-            //     // height: StyleProp::Value(Units::Percentage(60.)),
-            //     // top: Units::Percentage(20.).into(),
-            //     // left: Units::Percentage(20.).into(),
-            //     ..Default::default()
-            // },
             computed_styles: ComputedStyles(KStyle {
                 position_type: KPositionType::SelfDirected.into(),
                 ..Default::default()
@@ -76,18 +66,9 @@ pub fn hud_render(
     widget_context: ResMut<KayakWidgetContext>,
     mut commands: Commands,
 ) -> bool {
-    // let test_style = KStyle {
-    //     bottom: StyleProp::Value(Units::Stretch(1.0)),
-    //     layout_type: StyleProp::Value(LayoutType::Column),
-    //     top: StyleProp::Value(Units::Stretch(1.0)),
-    //     height: StyleProp::Value(Units::Pixels(0.0)),
-    //     width: StyleProp::Value(Units::Pixels(0.0)),
-    //     ..Default::default()
-    // };
-
     let parent_id = Some(entity);
     rsx! {
-        <HudWaveTimerBundle /*styles={test_style}*/>
+        <HudWaveTimerBundle>
         </HudWaveTimerBundle>
     };
 

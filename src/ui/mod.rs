@@ -14,6 +14,7 @@ use crate::ui::{
 use self::hud::setup_hud;
 use self::hud::wave_timer::update_hud_wave_timer_value;
 use self::main_menu::assets::ImageAssets;
+use self::main_menu::on_game_state_change;
 
 pub mod hud;
 pub mod main_menu;
@@ -33,7 +34,7 @@ impl Plugin for KayakUiPlugin {
             .add_plugins((KayakContextPlugin, KayakWidgets))
             .add_systems(Startup, setup_kayak_ui)
             .add_systems(Startup, setup_hud)
-            .add_systems(Update, update_hud_wave_timer_value);
+            .add_systems(Update, (update_hud_wave_timer_value, on_game_state_change));
     }
 }
 
@@ -54,17 +55,6 @@ pub fn setup_kayak_ui(
 
     let parent_id = None;
 
-    rsx! {
-        <KayakAppBundle>
-            <HudBundle>
-                <HudProps/>
-            </HudBundle>
-            <MainMenuBundle>
-                <MainMenuProps/>
-            </MainMenuBundle>
-        </KayakAppBundle>
-    };
-
     // Main Menu ##########################################################
     widget_context.add_widget_data::<MainMenuProps, EmptyState>();
     widget_context.add_widget_system(
@@ -72,13 +62,14 @@ pub fn setup_kayak_ui(
         widget_update::<MainMenuProps, EmptyState>,
         main_menu_render,
     );
-    // Main Menu Backgroud
-    widget_context.add_widget_data::<MainMenuProps, EmptyState>();
-    widget_context.add_widget_system(
-        MainMenuProps::default().get_name(),
-        widget_update::<MainMenuProps, EmptyState>,
-        main_menu_background_render,
-    );
+
+    // // Main Menu Backgroud
+    // widget_context.add_widget_data::<MainMenuProps, EmptyState>();
+    // widget_context.add_widget_system(
+    //     MainMenuProps::default().get_name(),
+    //     widget_update::<MainMenuProps, EmptyState>,
+    //     main_menu_background_render,
+    // );
 
     // Main Menu buttons
     widget_context.add_widget_data::<MainMenuButton, ButtonState>();
@@ -103,6 +94,17 @@ pub fn setup_kayak_ui(
         widget_update::<HudProps, EmptyState>,
         hud_wave_timer_render,
     );
+
+    rsx! {
+        <KayakAppBundle>
+            <HudBundle>
+                <HudProps/>
+            </HudBundle>
+            <MainMenuBundle>
+                //<MainMenuProps/>
+            </MainMenuBundle>
+        </KayakAppBundle>
+    };
 
     commands.spawn((widget_context, EventDispatcher::default()));
 }
